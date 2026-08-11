@@ -23,20 +23,29 @@ sirexe/
 │   │   └── terrain_modules.dart       # Interfaces services terrain
 │   ├── apps/
 │   │   ├── auth/
-│   │   │   └── login_screen.dart      # Écran login (démo ministère / opérateur)
-│   │   └── ministere/
-│   │       ├── ministere_app.dart     # App ministere avec drawer navigation
-│   │       ├── screens/
-│   │       │   ├── dashboard_screen.dart    # Onglets : Carte / Pesées / Alertes / Chaîne
-│   │       │   ├── pesees_screen.dart       # Liste pesées + détail hash
-│   │       │   └── verification_chain_screen.dart # Vérification intégrité ledger
-│   │       └── widgets/
-│   │           ├── stats_topbar.dart        # Topbar compteurs + logo
-│   │           ├── sidebar_permis.dart      # Sidebar filtres + liste permis
-│   │           └── permis_detail_panel.dart # Panneau détail permis sélectionné
+│   │   │   └── login_screen.dart      # Écran login (démo ministère / opérateur terrain)
+│   │   ├── ministere/
+│   │   │   ├── ministere_app.dart     # App ministere avec drawer navigation
+│   │   │   ├── screens/
+│   │   │   │   ├── dashboard_screen.dart    # Onglets : Carte / Pesées / Alertes / Chaîne
+│   │   │   │   ├── pesees_screen.dart       # Liste pesées + détail hash
+│   │   │   │   └── verification_chain_screen.dart # Vérification intégrité ledger
+│   │   │   └── widgets/
+│   │   │       ├── stats_topbar.dart        # Topbar compteurs + logo
+│   │   │       ├── sidebar_permis.dart      # Sidebar filtres + liste permis
+│   │   │       └── permis_detail_panel.dart # Panneau détail permis sélectionné
+│   │   └── terrain/
+│   │       ├── terrain_app.dart      # App terrain dédiée
+│   │       └── screens/
+│   │           ├── terrain_home_screen.dart # Bottom nav : Pesée / Classer / Historique
+│   │           ├── pesee_screen.dart        # Formulaire pesée camion
+│   │           ├── classification_screen.dart # Classification roche
+│   │           └── history_screen.dart      # Historique pesées
 │   ├── screens/
 │   │   ├── map_screen.dart            # Carte flutter_map + sidebar + permis panel
-│   │   └── sidebar_panel.dart         # Sidebar générique couches + filtres
+│   │   ├── sidebar_panel.dart         # Sidebar générique couches + filtres
+│   │   └── map/
+│   │       └── geo_map_screen.dart    # Carte couche géologique avec zoom +/- 
 │   └── widgets/
 │       ├── geo_top_bar.dart           # Topbar alternative avec chips statut
 │       └── permis_panel.dart          # Panel bas pour permis sélectionné
@@ -121,11 +130,26 @@ Configurée dans `lib/core/config/api_config.dart`.
 ## Navigation
 
 - **Login** : sélection rôle Ministère / Opérateur terrain
-- **Dashboard** : 4 onglets
+- **Dashboard Ministère** : 4 onglets
   - Carte : flutter_map + sidebar permis + geofences
   - Pesées : liste + simulation live + détail hash SHA-256
   - Alertes : polling backend + toast + centrage carte
   - Chaîne : vérification intégrité ledger
+- **App Terrain** : bottom navigation
+  - Pesée camion
+  - Classification roche
+  - Historique
+- **Carte Géologique** : vue dédiée avec contrôles zoom +/- et couche géologie BGS
+
+## Map
+
+- **Carte principale** : `lib/screens/map_screen.dart`
+  - Tiles MapTiler `dataviz-dark`
+  - Zoom : `minZoom: 3`, `maxZoom: 16`
+  - Contrôles zoom `+`/`-` en superposition
+- **Carte géologique** : `lib/screens/map/geo_map_screen.dart`
+  - Couche GeoJSON géologie
+  - Contrôles zoom +/- intégrés
 
 ## Lancer le projet
 
