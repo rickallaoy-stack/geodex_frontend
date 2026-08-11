@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../core/theme.dart';
+import '../../../core/theme.dart';
 import '../ministere/ministere_app.dart';
+import '../terrain/terrain_app.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -65,7 +66,7 @@ class _LoginScreenState extends State<LoginScreen>
         MaterialPageRoute(builder: (_) => const MinistereApp()));
     } else {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const MinistereApp()));
+        MaterialPageRoute(builder: (_) => const TerrainApp()));
     }
   }
 
