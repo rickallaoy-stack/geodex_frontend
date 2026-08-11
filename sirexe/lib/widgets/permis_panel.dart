@@ -55,8 +55,10 @@ class PermisPanel extends StatelessWidget {
           const SizedBox(width: 8),
           _InfoChip(
             icon: Icons.calendar_today,
-            label: 'Exp. ${permis.dateExpiration.day}/${permis.dateExpiration.month}/${permis.dateExpiration.year}',
-            color: permis.statut == StatutPermis.expire ? SirexeTheme.danger : null),
+            label: permis.dateExpiration != null
+              ? 'Exp. ${permis.dateExpiration!.day}/${permis.dateExpiration!.month}/${permis.dateExpiration!.year}'
+              : 'Exp. —',
+            color: permis.statut == StatutPermis.revoque ? SirexeTheme.danger : null),
         ]),
         if (permis.statut == StatutPermis.illegal) ...[
           const SizedBox(height: 10),

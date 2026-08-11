@@ -13,9 +13,9 @@ class StatsTopbar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final actifs    = permisDemo.where((p) => p.statut == StatutPermis.actif).length;
+    final actifs    = permisDemo.where((p) => p.statut == StatutPermis.valide).length;
     final suspendus = permisDemo.where((p) => p.statut == StatutPermis.suspendu).length;
-    final expires   = permisDemo.where((p) => p.statut == StatutPermis.expire).length;
+    final expires   = permisDemo.where((p) => p.statut == StatutPermis.revoque).length;
 
     return Container(
       color: SirexeTheme.surface,
@@ -48,13 +48,13 @@ class StatsTopbar extends StatelessWidget implements PreferredSizeWidget {
               style: TextStyle(
                 color: SirexeTheme.textSecondary, fontSize: 12)),
             const Spacer(),
-            _StatPill(count: actifs,    label: 'actifs',
+            _StatPill(count: actifs,    label: 'valides',
               color: SirexeTheme.accent),
             const SizedBox(width: 6),
             _StatPill(count: suspendus, label: 'suspendus',
               color: SirexeTheme.warning),
             const SizedBox(width: 6),
-            _StatPill(count: expires,   label: 'expirés',
+            _StatPill(count: expires,   label: 'révoqués',
               color: SirexeTheme.textSecondary),
             const SizedBox(width: 8),
             if (alerteCount > 0)

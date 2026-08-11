@@ -415,27 +415,31 @@ class _PermisCard extends StatelessWidget {
 
   Color _badgeColor(StatutPermis s) {
     switch (s) {
-      case StatutPermis.actif:
+      case StatutPermis.valide:
         return _colorActif;
       case StatutPermis.illegal:
         return _colorIllegale;
       case StatutPermis.suspendu:
         return _colorSuspendu;
-      case StatutPermis.expire:
+      case StatutPermis.revoque:
+        return _colorExpire;
+      case StatutPermis.enAttente:
         return _colorExpire;
     }
   }
 
   String _badgeLabel(StatutPermis s) {
     switch (s) {
-      case StatutPermis.actif:
-        return 'Actif';
+      case StatutPermis.valide:
+        return 'Valide';
       case StatutPermis.illegal:
         return 'Illégal';
       case StatutPermis.suspendu:
         return 'Suspendu';
-      case StatutPermis.expire:
-        return 'Expiré';
+      case StatutPermis.revoque:
+        return 'Révoqué';
+      case StatutPermis.enAttente:
+        return 'En attente';
     }
   }
 

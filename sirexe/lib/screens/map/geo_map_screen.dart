@@ -79,7 +79,7 @@ class _GeoMapScreenState extends State<GeoMapScreen> {
             point: point,
             width: 36,
             height: 36,
-            builder: (context) => const Icon(
+            child: const Icon(
               Icons.location_on,
               color: Colors.red,
               size: 28,
@@ -140,8 +140,8 @@ class _GeoMapScreenState extends State<GeoMapScreen> {
       case GeoMapStatus.success:
         return FlutterMap(
           options: MapOptions(
-            center: const LatLng(7.8, -5.3),
-            zoom: 6,
+            initialCenter: const LatLng(7.8, -5.3),
+            initialZoom: 6,
             minZoom: 3,
             maxZoom: 16,
           ),
