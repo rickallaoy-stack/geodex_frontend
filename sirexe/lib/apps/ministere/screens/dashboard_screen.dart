@@ -9,6 +9,7 @@ import '../../../models/permis_minier.dart';
 import '../../../models/alerte_model.dart';
 import '../../../core/services/permis_service.dart';
 import '../../../core/services/alerte_service.dart';
+import '../../../core/services/geofence_alert.dart';
 import '../widgets/stats_topbar.dart';
 import '../widgets/sidebar_permis.dart';
 import '../widgets/permis_detail_panel.dart';
@@ -288,6 +289,50 @@ class _DashboardScreenState extends State<DashboardScreen> {
           SizedBox(width: 270, child: PermisDetailPanel(permis: _selected!, onClose: () => setState(() => _selected = null))),
         ],
       ]),
+      ValueListenableBuilder<GeofenceAlert?>(
+        valueListenable: geofenceAlert,
+        builder: (context, cas, _) {
+          if (cas == null) return const SizedBox.shrink();
+          return Positioned(top: 16, left: 16, right: 16,
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: cas.severity == 'danger'
+                    ? SirexeTheme.danger.withOpacity(0.12)
+                    : SirexeTheme.warning.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: cas.severity == 'danger'
+                      ? SirexeTheme.danger.withOpacity(0.45)
+                      : SirexeTheme.warning.withOpacity(0.45),
+                ),
+              ),
+              child: Row(children: [
+                Icon(
+                  cas.severity == 'danger'
+                      ? Icons.warning_amber_rounded
+                      : Icons.info_outlined,
+                  color: cas.severity == 'danger'
+                      ? SirexeTheme.danger
+                      : SirexeTheme.warning,
+                  size: 20,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    cas.message,
+                    style: TextStyle(
+                      color: SirexeTheme.textPrimary,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ]),
+            ),
+          );
+        },
+      ),
       if (_toastVisible && _toastAlerte != null)
         Positioned(top: 16, right: 16, child: _AlerteToast(alerte: _toastAlerte!, onTap: () { _centrerSurAlerte(_toastAlerte!); _dismissToast(); }, onDismiss: _dismissToast)),
     ]);

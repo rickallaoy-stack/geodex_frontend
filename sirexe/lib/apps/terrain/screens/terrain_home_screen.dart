@@ -9,6 +9,7 @@ import '../../../core/local/sync_queue.dart';
 import '../../../models/pesee.dart';
 import '../../../models/permis_minier.dart';
 import '../../../core/services/permis_service.dart';
+import '../../../core/services/geofence_alert.dart';
 
 class TerrainHomeScreen extends StatefulWidget {
   const TerrainHomeScreen({super.key});
@@ -79,6 +80,7 @@ class _TerrainHomeScreenState extends State<TerrainHomeScreen> {
       _permis      = permis;
       _permisLoaded = true;
     });
+    _detecterCas();
   }
 
   Future<void> _getGPS() async {
@@ -101,6 +103,7 @@ class _TerrainHomeScreenState extends State<TerrainHomeScreen> {
         _gpsOk      = true;
         _gpsLoading = false;
       });
+      _detecterCas();
     } catch (e) {
       setState(() {
         _gpsLoading = false;
@@ -108,6 +111,41 @@ class _TerrainHomeScreenState extends State<TerrainHomeScreen> {
         _erreur     = e.toString();
       });
     }
+  }
+
+  void _detecterCas() {
+    if (_positionActive == null || !_permisLoaded) {
+      geofenceAlert.value = null;
+      return;
+    }
+    final pos = _positionActive!;
+    String? message;
+    String severity = 'info';
+    for (final p in _permis) {
+      final distance = Geolocator.distanceBetween(
+        pos.latitude, pos.longitude,
+        p.centre.latitude, p.centre.longitude,
+      );
+      if (distance < 15000) {
+        if (p.statut == StatutPermis.illegal) {
+          message = 'ZONE ILLÉGALE : ${p.id}';
+          severity = 'danger';
+        } else if (p.statut == StatutPermis.revoque) {
+          message = 'PERMIS RÉVOQUÉ : ${p.id}';
+          severity = 'danger';
+        } else if (p.statut == StatutPermis.suspendu) {
+          message = 'PERMIS SUSPENDU : ${p.id}';
+          severity = 'warning';
+        } else if (p.statut == StatutPermis.valide) {
+          message = 'Zone autorisée : ${p.id}';
+          severity = 'info';
+        }
+        break;
+      }
+    }
+    geofenceAlert.value = message == null
+        ? null
+        : GeofenceAlert(message, severity, DateTime.now());
   }
 
   Future<void> _enregistrerPesee() async {
@@ -220,15 +258,55 @@ class _TerrainHomeScreenState extends State<TerrainHomeScreen> {
   }
 
   Widget _buildPeseeTab() {
+    final cas = geofenceAlert.value;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(children: [
         _GpsCard(
           loading:  _gpsLoading,
           ok:       _gpsOk,
-          position: _position,
+          position: _positionActive,
           onRetry:  _getGPS,
         ),
+        if (cas != null) ...[
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: cas.severity == 'danger'
+                  ? SirexeTheme.danger.withOpacity(0.1)
+                  : SirexeTheme.warning.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: cas.severity == 'danger'
+                    ? SirexeTheme.danger.withOpacity(0.35)
+                    : SirexeTheme.warning.withOpacity(0.35),
+              ),
+            ),
+            child: Row(children: [
+              Icon(
+                cas.severity == 'danger'
+                    ? Icons.warning_amber_rounded
+                    : Icons.info_outlined,
+                color: cas.severity == 'danger'
+                    ? SirexeTheme.danger
+                    : SirexeTheme.warning,
+                size: 18,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  cas.message,
+                  style: TextStyle(
+                    color: SirexeTheme.textPrimary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ]),
+          ),
+        ],
         const SizedBox(height: 16),
         _FormCard(
           camionCtrl:  _camionCtrl,
@@ -356,6 +434,7 @@ class _TerrainHomeScreenState extends State<TerrainHomeScreen> {
                   _terrainMapController.move(
                     LatLng(site.$2!, site.$3!), 11);
                 }
+                _detecterCas();
               },
             ),
           ]),
