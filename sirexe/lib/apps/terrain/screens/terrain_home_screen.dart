@@ -2,9 +2,13 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import '../../../core/theme.dart';
 import '../../../core/local/sync_queue.dart';
 import '../../../models/pesee.dart';
+import '../../../models/permis_minier.dart';
+import '../../../core/services/permis_service.dart';
 
 class TerrainHomeScreen extends StatefulWidget {
   const TerrainHomeScreen({super.key});
@@ -27,12 +31,19 @@ class _TerrainHomeScreenState extends State<TerrainHomeScreen> {
   String? _erreur;
 
   int _enAttente = 0;
+  int _tabIndex  = 0;
+
+  List<PermisMinier> _permis = [];
+  bool _permisLoaded = false;
+
+  final MapController _terrainMapController = MapController();
 
   @override
   void initState() {
     super.initState();
     _getGPS();
     _refreshQueue();
+    _loadPermis();
   }
 
   @override
@@ -47,6 +58,14 @@ class _TerrainHomeScreenState extends State<TerrainHomeScreen> {
   Future<void> _refreshQueue() async {
     final n = await SyncQueue.countPending();
     setState(() => _enAttente = n);
+  }
+
+  Future<void> _loadPermis() async {
+    final permis = await PermisService.fetchPermis();
+    setState(() {
+      _permis      = permis;
+      _permisLoaded = true;
+    });
   }
 
   Future<void> _getGPS() async {
@@ -163,35 +182,183 @@ class _TerrainHomeScreenState extends State<TerrainHomeScreen> {
             await SyncQueue.syncAll();
             await _refreshQueue();
           }),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(children: [
-                _GpsCard(
-                  loading:  _gpsLoading,
-                  ok:       _gpsOk,
-                  position: _position,
-                  onRetry:  _getGPS,
-                ),
-                const SizedBox(height: 16),
-                _FormCard(
-                  camionCtrl:  _camionCtrl,
-                  capteurCtrl: _capteurCtrl,
-                  poidsCtrl:   _poidsCtrl,
-                  tapeCtrl:    _tapeCtrl,
-                  submitting:  _submitting,
-                  erreur:      _erreur,
-                  onSubmit:    _enregistrerPesee,
-                ),
-                const SizedBox(height: 16),
-                if (_dernierePesee != null)
-                  _ResultCard(pesee: _dernierePesee!),
-              ]),
-            ),
+          Container(
+            color: SirexeTheme.surface,
+            child: Row(children: [
+              _TerrainTab(
+                label: 'Pesée',
+                icon: Icons.scale_outlined,
+                active: _tabIndex == 0,
+                onTap: () => setState(() => _tabIndex = 0)),
+              _TerrainTab(
+                label: 'Ma zone',
+                icon: Icons.map_outlined,
+                active: _tabIndex == 1,
+                onTap: () => setState(() => _tabIndex = 1)),
+            ]),
           ),
+          Container(height: 0.5, color: SirexeTheme.border),
+          Expanded(child: _tabIndex == 0
+            ? _buildPeseeTab()
+            : _buildMapTab()),
         ]),
       ),
     );
+  }
+
+  Widget _buildPeseeTab() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(children: [
+        _GpsCard(
+          loading:  _gpsLoading,
+          ok:       _gpsOk,
+          position: _position,
+          onRetry:  _getGPS,
+        ),
+        const SizedBox(height: 16),
+        _FormCard(
+          camionCtrl:  _camionCtrl,
+          capteurCtrl: _capteurCtrl,
+          poidsCtrl:   _poidsCtrl,
+          tapeCtrl:    _tapeCtrl,
+          submitting:  _submitting,
+          erreur:      _erreur,
+          onSubmit:    _enregistrerPesee,
+        ),
+        const SizedBox(height: 16),
+        if (_dernierePesee != null)
+          _ResultCard(pesee: _dernierePesee!),
+      ]),
+    );
+  }
+
+  Widget _buildMapTab() {
+    final center = _position != null
+      ? LatLng(_position!.latitude, _position!.longitude)
+      : const LatLng(7.5, -5.5);
+
+    return Stack(children: [
+      FlutterMap(
+        mapController: _terrainMapController,
+        options: MapOptions(
+          initialCenter: center,
+          initialZoom: _position != null ? 10.0 : 6.2,
+          minZoom: 3,
+          maxZoom: 16,
+        ),
+        children: [
+          TileLayer(
+            urlTemplate:
+              'https://api.maptiler.com/maps/dataviz-dark/{z}/{x}/{y}.png?key={key}',
+            additionalOptions: const {'key': '6tZxrsJMAnTertUR2ILg'},
+            userAgentPackageName: 'ci.geodex.app',
+          ),
+          if (_permisLoaded)
+            PolygonLayer(
+              polygons: _permis.map((p) => Polygon(
+                points: p.polygone,
+                color: p.couleur.withOpacity(0.2),
+                borderColor: p.couleur,
+                borderStrokeWidth: 1.5,
+                isFilled: true,
+              )).toList(),
+            ),
+          CircleLayer(
+            circles: _permis
+              .where((p) => p.statut == StatutPermis.valide)
+              .map((p) => CircleMarker(
+                point: p.centre,
+                radius: 15000,
+                useRadiusInMeter: true,
+                color: SirexeTheme.accent.withOpacity(0.05),
+                borderColor: SirexeTheme.accent.withOpacity(0.3),
+                borderStrokeWidth: 1,
+              )).toList(),
+          ),
+          if (_position != null)
+            MarkerLayer(markers: [
+              Marker(
+                point: LatLng(
+                  _position!.latitude, _position!.longitude),
+                width: 40, height: 40,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: SirexeTheme.accentBlue.withOpacity(0.2),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: SirexeTheme.accentBlue, width: 2)),
+                  child: const Icon(Icons.person_pin_circle,
+                    color: SirexeTheme.accentBlue, size: 20)),
+              ),
+            ]),
+        ],
+      ),
+      if (_position != null)
+        Positioned(bottom: 16, left: 16,
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: SirexeTheme.surface.withOpacity(0.95),
+              borderRadius: BorderRadius.circular(7),
+              border: Border.all(color: SirexeTheme.border)),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              const Icon(Icons.gps_fixed,
+                color: SirexeTheme.accentBlue, size: 12),
+              const SizedBox(width: 6),
+              Text(
+                '${_position!.latitude.toStringAsFixed(4)}°N  '
+                '${_position!.longitude.toStringAsFixed(4)}°W',
+                style: const TextStyle(
+                  color: SirexeTheme.textPrimary,
+                  fontSize: 11, fontFamily: 'monospace')),
+            ]),
+          ),
+        ),
+      Positioned(top: 12, right: 12,
+        child: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: SirexeTheme.surface.withOpacity(0.95),
+            borderRadius: BorderRadius.circular(7),
+            border: Border.all(color: SirexeTheme.border)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _LegendRow(color: SirexeTheme.accent,      label: 'Zone autorisée'),
+              _LegendRow(color: SirexeTheme.warning,     label: 'Suspendu'),
+              _LegendRow(color: SirexeTheme.danger,      label: 'Illégal / révoqué'),
+              _LegendRow(color: SirexeTheme.accentBlue,  label: 'Ma position'),
+            ],
+          ),
+        ),
+      ),
+      Positioned(bottom: 16, right: 16,
+        child: GestureDetector(
+          onTap: () {
+            if (_position != null) {
+              _terrainMapController.move(
+                LatLng(_position!.latitude, _position!.longitude),
+                12.0);
+            }
+          },
+          child: Container(
+            width: 42, height: 42,
+            decoration: BoxDecoration(
+              color: SirexeTheme.surface,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: SirexeTheme.border),
+              boxShadow: [
+                BoxShadow(color: Colors.black.withOpacity(0.3),
+                  blurRadius: 8)
+              ]),
+            child: const Icon(Icons.my_location,
+              color: SirexeTheme.accentBlue, size: 18)),
+        ),
+      ),
+    ]);
   }
 }
 
@@ -522,5 +689,54 @@ class _Line extends StatelessWidget {
       Expanded(child: Text(value, style: const TextStyle(
         color: SirexeTheme.textPrimary, fontSize: 12))),
     ]),
+  );
+}
+
+class _LegendRow extends StatelessWidget {
+  final Color color;
+  final String label;
+  const _LegendRow({required this.color, required this.label});
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: 4),
+    child: Row(mainAxisSize: MainAxisSize.min, children: [
+      Container(width: 8, height: 8,
+        decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+      const SizedBox(width: 6),
+      Text(label, style: const TextStyle(
+        color: SirexeTheme.textPrimary, fontSize: 10)),
+    ]),
+  );
+}
+
+class _TerrainTab extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool active;
+  final VoidCallback onTap;
+  const _TerrainTab({required this.label, required this.icon,
+    required this.active, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+    onTap: onTap,
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(
+          color: active ? SirexeTheme.accent : Colors.transparent,
+          width: 2))),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        Icon(icon, size: 14,
+          color: active
+            ? SirexeTheme.accent : SirexeTheme.textSecondary),
+        const SizedBox(width: 6),
+        Text(label, style: TextStyle(
+          color: active
+            ? SirexeTheme.accent : SirexeTheme.textSecondary,
+          fontSize: 13,
+          fontWeight: active ? FontWeight.w600 : FontWeight.normal)),
+      ]),
+    ),
   );
 }
