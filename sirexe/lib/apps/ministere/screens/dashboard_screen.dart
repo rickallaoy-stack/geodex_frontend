@@ -14,6 +14,8 @@ import '../widgets/sidebar_permis.dart';
 import '../widgets/permis_detail_panel.dart';
 import 'pesees_screen.dart';
 import 'verification_chain_screen.dart';
+import 'alertes_screen.dart';
+import 'stats_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -39,9 +41,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   StreamSubscription<List<AlerteModel>>? _alerteSubscription;
 
   List<AlerteModel> _alertes = [];
-  bool _alertesLoading = true;
-  String? _alertesError;
-
   bool _toastVisible = false;
   AlerteModel? _toastAlerte;
   Timer? _toastTimer;
@@ -82,8 +81,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
         setState(() {
           _alertes = alertes;
-          _alertesLoading = false;
-          _alertesError = null;
         });
 
         if (nouvelles.isNotEmpty) {
@@ -92,10 +89,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       },
       onError: (e) {
         if (!mounted) return;
-        setState(() {
-          _alertesLoading = false;
-          _alertesError = e.toString();
-        });
       },
     );
   }
@@ -230,12 +223,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
             _Tab(label: 'Carte', icon: Icons.map_outlined, active: _tabIndex == 0, onTap: () => setState(() => _tabIndex = 0)),
             _Tab(label: 'Pesées', icon: Icons.scale_outlined, active: _tabIndex == 1, onTap: () => setState(() => _tabIndex = 1)),
             _Tab(label: 'Alertes', icon: Icons.warning_amber_rounded, active: _tabIndex == 2, badge: _alertes.length, onTap: () => setState(() => _tabIndex = 2)),
-            _Tab(label: 'Chaîne', icon: Icons.link_rounded, active: _tabIndex == 3, onTap: () => setState(() => _tabIndex = 3)),
+            _Tab(label: 'Stats', icon: Icons.bar_chart_rounded, active: _tabIndex == 3, onTap: () => setState(() => _tabIndex = 3)),
+            _Tab(label: 'Chaîne', icon: Icons.link_rounded, active: _tabIndex == 4, onTap: () => setState(() => _tabIndex = 4)),
             Container(height: 40, width: 0.5, color: SirexeTheme.border),
           ]),
         ),
         Container(height: 0.5, color: SirexeTheme.border),
-        Expanded(child: _tabIndex == 0 ? _buildCarteTab() : (_tabIndex == 1 ? const PeseesScreen() : (_tabIndex == 2 ? _buildAlertesTab() : const VerificationChainScreen()))),
+        Expanded(child: _tabIndex == 0
+          ? _buildCarteTab()
+          : _tabIndex == 1
+            ? const PeseesScreen()
+            : _tabIndex == 2
+              ? const AlertesScreen()
+              : _tabIndex == 3
+                ? const StatsScreen()
+                : const VerificationChainScreen()),
       ]),
     );
   }
@@ -290,83 +292,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         Positioned(top: 16, right: 16, child: _AlerteToast(alerte: _toastAlerte!, onTap: () { _centrerSurAlerte(_toastAlerte!); _dismissToast(); }, onDismiss: _dismissToast)),
     ]);
   }
-
-  Widget _buildAlertesTab() {
-    if (_alertesLoading) {
-      return const Center(child: Column(mainAxisSize: MainAxisSize.min, children: [CircularProgressIndicator(color: SirexeTheme.accentBlue), SizedBox(height: 16), Text('Chargement des alertes…', style: TextStyle(color: SirexeTheme.textSecondary))]));
-    }
-    if (_alertesError != null) {
-      return Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-        const Icon(Icons.wifi_off_rounded, color: SirexeTheme.danger, size: 48),
-        const SizedBox(height: 16),
-        const Text('Impossible de joindre le backend', style: TextStyle(color: SirexeTheme.textPrimary, fontSize: 15, fontWeight: FontWeight.w600)),
-        const SizedBox(height: 6),
-        Text(_alertesError!, style: const TextStyle(color: SirexeTheme.textSecondary, fontSize: 12), textAlign: TextAlign.center),
-        const SizedBox(height: 20),
-        TextButton.icon(onPressed: () { setState(() { _alertesLoading = true; _alertesError = null; }); _alerteSubscription?.cancel(); _startAlertesWatch(); }, icon: const Icon(Icons.refresh, color: SirexeTheme.accentBlue), label: const Text('Réessayer', style: TextStyle(color: SirexeTheme.accentBlue))),
-      ]));
-    }
-    if (_alertes.isEmpty) {
-      return const Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Icon(Icons.check_circle_outline, color: SirexeTheme.accent, size: 48),
-        SizedBox(height: 16),
-        Text('Aucune anomalie détectée', style: TextStyle(color: SirexeTheme.textPrimary, fontSize: 15, fontWeight: FontWeight.w600)),
-        SizedBox(height: 6),
-        Text('Toutes les pesées sont dans les zones autorisées.', style: TextStyle(color: SirexeTheme.textSecondary, fontSize: 13)),
-      ]));
-    }
-    return Column(children: [
-      Container(padding: const EdgeInsets.fromLTRB(16, 12, 16, 10), color: SirexeTheme.surface, child: Row(children: [
-        Text('${_alertes.length} alerte${_alertes.length > 1 ? 's' : ''} détectée${_alertes.length > 1 ? 's' : ''}', style: const TextStyle(color: SirexeTheme.textPrimary, fontSize: 14, fontWeight: FontWeight.w600)),
-        const Spacer(),
-        Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3), decoration: BoxDecoration(color: SirexeTheme.accentBlue.withOpacity(0.12), borderRadius: BorderRadius.circular(4), border: Border.all(color: SirexeTheme.accentBlue.withOpacity(0.3))), child: Row(mainAxisSize: MainAxisSize.min, children: [Container(width: 6, height: 6, margin: const EdgeInsets.only(right: 5), decoration: const BoxDecoration(color: SirexeTheme.accentBlue, shape: BoxShape.circle)), const Text('Live · 15 s', style: TextStyle(color: SirexeTheme.accentBlue, fontSize: 11))])),
-      ])),
-      Container(height: 0.5, color: SirexeTheme.border),
-      Expanded(child: ListView.separated(padding: const EdgeInsets.all(12), itemCount: _alertes.length, separatorBuilder: (_, __) => const SizedBox(height: 8), itemBuilder: (context, i) => _AlerteCard(alerte: _alertes[i], onVoirCarte: () => _centrerSurAlerte(_alertes[i])))),
-    ]);
-  }
-}
-
-class _AlerteCard extends StatelessWidget {
-  const _AlerteCard({required this.alerte, required this.onVoirCarte});
-  final AlerteModel alerte;
-  final VoidCallback onVoirCarte;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: SirexeTheme.surface, borderRadius: BorderRadius.circular(10), border: Border.all(color: SirexeTheme.danger.withOpacity(0.35), width: 1)),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [_TypeBadge(label: alerte.libelleType), const Spacer(), Text(alerte.tempsRelatif, style: const TextStyle(color: SirexeTheme.textSecondary, fontSize: 11))]),
-        const SizedBox(height: 8),
-        Text(alerte.descriptionDetaillee, style: const TextStyle(color: SirexeTheme.textPrimary, fontSize: 13)),
-        const SizedBox(height: 10),
-        Row(children: [
-          _Meta(icon: Icons.scale_outlined, label: '${(alerte.poidsMesureKg / 1000).toStringAsFixed(2)} t'),
-          const SizedBox(width: 14),
-          _Meta(icon: Icons.location_on_outlined, label: '${alerte.latitude.toStringAsFixed(4)}, ${alerte.longitude.toStringAsFixed(4)}'),
-          const Spacer(),
-          GestureDetector(onTap: onVoirCarte, child: Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5), decoration: BoxDecoration(color: SirexeTheme.accentBlue.withOpacity(0.12), borderRadius: BorderRadius.circular(6), border: Border.all(color: SirexeTheme.accentBlue.withOpacity(0.4))), child: const Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.map_outlined, color: SirexeTheme.accentBlue, size: 13), SizedBox(width: 5), Text('Voir sur carte', style: TextStyle(color: SirexeTheme.accentBlue, fontSize: 11, fontWeight: FontWeight.w500))]))),
-        ]),
-      ]),
-    );
-  }
-}
-
-class _TypeBadge extends StatelessWidget {
-  const _TypeBadge({required this.label});
-  final String label;
-  @override
-  Widget build(BuildContext context) => Container(padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3), decoration: BoxDecoration(color: SirexeTheme.danger.withOpacity(0.12), borderRadius: BorderRadius.circular(4), border: Border.all(color: SirexeTheme.danger.withOpacity(0.45))), child: Row(mainAxisSize: MainAxisSize.min, children: [const Icon(Icons.warning_amber_rounded, color: SirexeTheme.danger, size: 11), const SizedBox(width: 4), Text(label, style: const TextStyle(color: SirexeTheme.danger, fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 0.3))]));
-}
-
-class _Meta extends StatelessWidget {
-  const _Meta({required this.icon, required this.label});
-  final IconData icon;
-  final String label;
-  @override
-  Widget build(BuildContext context) => Row(mainAxisSize: MainAxisSize.min, children: [Icon(icon, color: SirexeTheme.textSecondary, size: 13), const SizedBox(width: 4), Text(label, style: const TextStyle(color: SirexeTheme.textSecondary, fontSize: 11))]);
 }
 
 class _AlerteToast extends StatefulWidget {
