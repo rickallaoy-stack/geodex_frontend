@@ -1,56 +1,526 @@
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
-import 'pesee_screen.dart';
-import 'classification_screen.dart';
-import 'history_screen.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../../core/theme.dart';
+import '../../../core/local/sync_queue.dart';
+import '../../../models/pesee.dart';
 
 class TerrainHomeScreen extends StatefulWidget {
   const TerrainHomeScreen({super.key});
-
   @override
   State<TerrainHomeScreen> createState() => _TerrainHomeScreenState();
 }
 
 class _TerrainHomeScreenState extends State<TerrainHomeScreen> {
-  int _index = 0;
+  Position? _position;
+  bool _gpsLoading = false;
+  bool _gpsOk      = false;
+
+  final _camionCtrl   = TextEditingController();
+  final _capteurCtrl  = TextEditingController();
+  final _poidsCtrl    = TextEditingController();
+  final _tapeCtrl     = TextEditingController(text: '18.5');
+
+  bool   _submitting   = false;
+  Pesee? _dernierePesee;
+  String? _erreur;
+
+  int _enAttente = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _getGPS();
+    _refreshQueue();
+  }
+
+  @override
+  void dispose() {
+    _camionCtrl.dispose();
+    _capteurCtrl.dispose();
+    _poidsCtrl.dispose();
+    _tapeCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _refreshQueue() async {
+    final n = await SyncQueue.countPending();
+    setState(() => _enAttente = n);
+  }
+
+  Future<void> _getGPS() async {
+    setState(() => _gpsLoading = true);
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) throw Exception('GPS désactivé');
+
+      LocationPermission perm = await Geolocator.checkPermission();
+      if (perm == LocationPermission.denied) {
+        perm = await Geolocator.requestPermission();
+        if (perm == LocationPermission.denied) throw Exception('Permission refusée');
+      }
+
+      final pos = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
+
+      setState(() {
+        _position   = pos;
+        _gpsOk      = true;
+        _gpsLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _gpsLoading = false;
+        _gpsOk      = false;
+        _erreur     = e.toString();
+      });
+    }
+  }
+
+  Future<void> _enregistrerPesee() async {
+    if (_camionCtrl.text.isEmpty ||
+        _capteurCtrl.text.isEmpty ||
+        _poidsCtrl.text.isEmpty) {
+      setState(() => _erreur = 'Remplir tous les champs');
+      return;
+    }
+    if (_position == null) {
+      setState(() => _erreur = 'GPS requis — réessayer');
+      return;
+    }
+
+    final poidsBrut = double.tryParse(_poidsCtrl.text);
+    final tare      = double.tryParse(_tapeCtrl.text);
+    if (poidsBrut == null || tare == null || poidsBrut <= tare) {
+      setState(() => _erreur = 'Poids invalide (brut doit être > tare)');
+      return;
+    }
+
+    setState(() { _submitting = true; _erreur = null; });
+
+    final poidsNet  = poidsBrut - tare;
+    final timestamp = DateTime.now();
+    final camionId  = _camionCtrl.text.trim().toUpperCase();
+    final capteurId = _capteurCtrl.text.trim();
+
+    final sigPayload = '$capteurId-$camionId-${timestamp.millisecondsSinceEpoch}';
+    final signature  = sha256
+      .convert(utf8.encode(sigPayload))
+      .toString()
+      .substring(0, 16);
+
+    final hash = Pesee.genererHash(
+      permisId:  capteurId,
+      camionId:  camionId,
+      poidsNet:  poidsNet,
+      timestamp: timestamp,
+      latitude:  _position!.latitude,
+      longitude: _position!.longitude,
+    );
+
+    final pesee = Pesee(
+      id:        'PSE-${timestamp.millisecondsSinceEpoch}',
+      camionId:  camionId,
+      permisId:  capteurId,
+      nomSite:   'Terrain',
+      poidsNet:  double.parse(poidsNet.toStringAsFixed(2)),
+      poidsBrut: poidsBrut,
+      tare:      tare,
+      timestamp: timestamp,
+      latitude:  _position!.latitude,
+      longitude: _position!.longitude,
+      hash:      hash,
+      statut:    StatutPesee.valide,
+    );
+
+    bool envoye = false;
+    try {
+      envoye = false;
+    } catch (_) {}
+
+    if (!envoye) {
+      await SyncQueue.enqueue(pesee, signature: signature);
+    }
+
+    await _refreshQueue();
+
+    setState(() {
+      _dernierePesee = pesee;
+      _submitting    = false;
+      _camionCtrl.clear();
+      _poidsCtrl.clear();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: SirexeTheme.background,
-      body: IndexedStack(
-        index: _index,
-        children: const [
-          PeseeScreen(),
-          ClassificationScreen(),
-          HistoryScreen(),
-        ],
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: SirexeTheme.surface,
-        selectedItemColor: SirexeTheme.accent,
-        unselectedItemColor: SirexeTheme.textSecondary,
-        type: BottomNavigationBarType.fixed,
-        currentIndex: _index,
-        onTap: (i) => setState(() => _index = i),
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.scale_outlined),
-            activeIcon: Icon(Icons.scale_rounded),
-            label: 'Pesée',
+      body: SafeArea(
+        child: Column(children: [
+          _Topbar(enAttente: _enAttente, onSync: () async {
+            await SyncQueue.syncAll();
+            await _refreshQueue();
+          }),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(children: [
+                _GpsCard(
+                  loading:  _gpsLoading,
+                  ok:       _gpsOk,
+                  position: _position,
+                  onRetry:  _getGPS,
+                ),
+                const SizedBox(height: 16),
+                _FormCard(
+                  camionCtrl:  _camionCtrl,
+                  capteurCtrl: _capteurCtrl,
+                  poidsCtrl:   _poidsCtrl,
+                  tapeCtrl:    _tapeCtrl,
+                  submitting:  _submitting,
+                  erreur:      _erreur,
+                  onSubmit:    _enregistrerPesee,
+                ),
+                const SizedBox(height: 16),
+                if (_dernierePesee != null)
+                  _ResultCard(pesee: _dernierePesee!),
+              ]),
+            ),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.camera_alt_outlined),
-            activeIcon: Icon(Icons.camera_alt_rounded),
-            label: 'Classer',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.history_outlined),
-            activeIcon: Icon(Icons.history_rounded),
-            label: 'Historique',
-          ),
-        ],
+        ]),
       ),
     );
   }
+}
+
+class _Topbar extends StatelessWidget {
+  final int enAttente;
+  final VoidCallback onSync;
+  const _Topbar({required this.enAttente, required this.onSync});
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    decoration: const BoxDecoration(
+      color: SirexeTheme.surface,
+      border: Border(bottom: BorderSide(
+        color: SirexeTheme.border, width: 0.5))),
+    child: Row(children: [
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: SirexeTheme.accent.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: SirexeTheme.accent.withOpacity(0.3))),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          Container(width: 7, height: 7,
+            decoration: const BoxDecoration(
+              color: SirexeTheme.accent, shape: BoxShape.circle)),
+          const SizedBox(width: 7),
+          const Text('GEODEX', style: TextStyle(
+            color: SirexeTheme.textPrimary,
+            fontWeight: FontWeight.w800,
+            fontSize: 13, letterSpacing: 2)),
+          const SizedBox(width: 6),
+          const Text('Terrain', style: TextStyle(
+            color: SirexeTheme.textSecondary, fontSize: 12)),
+        ]),
+      ),
+      const Spacer(),
+      if (enAttente > 0)
+        GestureDetector(
+          onTap: onSync,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              color: SirexeTheme.warning.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: SirexeTheme.warning.withOpacity(0.4))),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              const Icon(Icons.cloud_upload_outlined,
+                color: SirexeTheme.warning, size: 13),
+              const SizedBox(width: 5),
+              Text('$enAttente en attente · Sync',
+                style: const TextStyle(
+                  color: SirexeTheme.warning, fontSize: 11)),
+            ]),
+          ),
+        )
+      else
+        const Row(mainAxisSize: MainAxisSize.min, children: [
+          Icon(Icons.cloud_done_outlined,
+            color: SirexeTheme.accent, size: 13),
+          SizedBox(width: 5),
+          Text('Synchronisé', style: TextStyle(
+            color: SirexeTheme.accent, fontSize: 11)),
+        ]),
+    ]),
+  );
+}
+
+class _GpsCard extends StatelessWidget {
+  final bool loading, ok;
+  final Position? position;
+  final VoidCallback onRetry;
+  const _GpsCard({required this.loading, required this.ok,
+    this.position, required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.all(14),
+    decoration: BoxDecoration(
+      color: SirexeTheme.surface,
+      borderRadius: BorderRadius.circular(10),
+      border: Border.all(
+        color: loading
+          ? SirexeTheme.border
+          : ok
+            ? SirexeTheme.accent.withOpacity(0.4)
+            : SirexeTheme.danger.withOpacity(0.4))),
+    child: Row(children: [
+      Container(
+        width: 38, height: 38,
+        decoration: BoxDecoration(
+          color: (ok ? SirexeTheme.accent : SirexeTheme.danger)
+            .withOpacity(0.1),
+          borderRadius: BorderRadius.circular(8)),
+        child: loading
+          ? const Padding(
+              padding: EdgeInsets.all(10),
+              child: CircularProgressIndicator(
+                strokeWidth: 2, color: SirexeTheme.accentBlue))
+          : Icon(
+              ok ? Icons.gps_fixed : Icons.gps_off,
+              color: ok ? SirexeTheme.accent : SirexeTheme.danger,
+              size: 18)),
+      const SizedBox(width: 12),
+      Expanded(child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            loading ? 'Acquisition GPS...'
+              : ok ? 'Position verrouillée'
+              : 'GPS indisponible',
+            style: TextStyle(
+              color: ok ? SirexeTheme.accent : SirexeTheme.danger,
+              fontSize: 13, fontWeight: FontWeight.w600)),
+          if (ok && position != null)
+            Text(
+              '${position!.latitude.toStringAsFixed(5)}°N  '
+              '${position!.longitude.toStringAsFixed(5)}°W  '
+              '±${position!.accuracy.toStringAsFixed(0)}m',
+              style: const TextStyle(
+                color: SirexeTheme.textSecondary,
+                fontSize: 11, fontFamily: 'monospace')),
+        ],
+      )),
+      if (!loading && !ok)
+        GestureDetector(
+          onTap: onRetry,
+          child: const Icon(Icons.refresh,
+            color: SirexeTheme.textSecondary, size: 18)),
+    ]),
+  );
+}
+
+class _FormCard extends StatelessWidget {
+  final TextEditingController camionCtrl, capteurCtrl, poidsCtrl, tapeCtrl;
+  final bool submitting;
+  final String? erreur;
+  final VoidCallback onSubmit;
+  const _FormCard({required this.camionCtrl, required this.capteurCtrl,
+    required this.poidsCtrl, required this.tapeCtrl,
+    required this.submitting, required this.erreur,
+    required this.onSubmit});
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.all(14),
+    decoration: BoxDecoration(
+      color: SirexeTheme.surface,
+      borderRadius: BorderRadius.circular(10),
+      border: Border.all(color: SirexeTheme.border)),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      const Text('NOUVELLE PESÉE', style: TextStyle(
+        color: SirexeTheme.textSecondary, fontSize: 11,
+        fontWeight: FontWeight.w500, letterSpacing: 1)),
+      const SizedBox(height: 14),
+      _TerrainField(label: 'ID Camion', ctrl: camionCtrl,
+        hint: 'ex: CAM-TG-04', icon: Icons.local_shipping_outlined),
+      const SizedBox(height: 10),
+      _TerrainField(label: 'ID Capteur IoT', ctrl: capteurCtrl,
+        hint: 'UUID du capteur ESP32', icon: Icons.sensors),
+      const SizedBox(height: 10),
+      Row(children: [
+        Expanded(child: _TerrainField(
+          label: 'Poids brut (kg)', ctrl: poidsCtrl,
+          hint: '0.00', icon: Icons.scale_outlined, numeric: true)),
+        const SizedBox(width: 10),
+        Expanded(child: _TerrainField(
+          label: 'Tare (kg)', ctrl: tapeCtrl,
+          hint: '18.5', icon: Icons.remove_circle_outline, numeric: true)),
+      ]),
+      if (erreur != null) ...[
+        const SizedBox(height: 10),
+        Row(children: [
+          const Icon(Icons.error_outline,
+            color: SirexeTheme.danger, size: 13),
+          const SizedBox(width: 6),
+          Expanded(child: Text(erreur!, style: const TextStyle(
+            color: SirexeTheme.danger, fontSize: 12))),
+        ]),
+      ],
+      const SizedBox(height: 14),
+      SizedBox(
+        width: double.infinity,
+        child: GestureDetector(
+          onTap: submitting ? null : onSubmit,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            decoration: BoxDecoration(
+              color: submitting
+                ? SirexeTheme.surfaceElevated
+                : SirexeTheme.accent,
+              borderRadius: BorderRadius.circular(9)),
+            child: Center(child: submitting
+              ? const SizedBox(width: 18, height: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2, color: Colors.white))
+              : const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.scale, color: Colors.white, size: 16),
+                    SizedBox(width: 8),
+                    Text('Enregistrer la pesée',
+                      style: TextStyle(color: Colors.white,
+                        fontSize: 14, fontWeight: FontWeight.w700)),
+                  ])),
+          ),
+        ),
+      ),
+    ]),
+  );
+}
+
+class _TerrainField extends StatelessWidget {
+  final String label, hint;
+  final TextEditingController ctrl;
+  final IconData icon;
+  final bool numeric;
+  const _TerrainField({required this.label, required this.hint,
+    required this.ctrl, required this.icon, this.numeric = false});
+
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(label, style: const TextStyle(
+        color: SirexeTheme.textSecondary, fontSize: 11,
+        fontWeight: FontWeight.w500)),
+      const SizedBox(height: 5),
+      TextField(
+        controller: ctrl,
+        keyboardType: numeric
+          ? const TextInputType.numberWithOptions(decimal: true)
+          : TextInputType.text,
+        style: const TextStyle(
+          color: SirexeTheme.textPrimary, fontSize: 13),
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: const TextStyle(
+            color: SirexeTheme.textSecondary, fontSize: 12),
+          prefixIcon: Icon(icon,
+            color: SirexeTheme.textSecondary, size: 15),
+          filled: true,
+          fillColor: SirexeTheme.surfaceElevated,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: const BorderSide(
+              color: SirexeTheme.border, width: 0.5)),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: const BorderSide(
+              color: SirexeTheme.border, width: 0.5)),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: const BorderSide(
+              color: SirexeTheme.accent, width: 1.5)),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 12, vertical: 12)),
+      ),
+    ],
+  );
+}
+
+class _ResultCard extends StatelessWidget {
+  final Pesee pesee;
+  const _ResultCard({required this.pesee});
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: SirexeTheme.accent.withOpacity(0.06),
+      borderRadius: BorderRadius.circular(10),
+      border: Border.all(color: SirexeTheme.accent.withOpacity(0.35))),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      const Row(children: [
+        Icon(Icons.check_circle_outline,
+          color: SirexeTheme.accent, size: 16),
+        SizedBox(width: 8),
+        Text('Pesée enregistrée localement',
+          style: TextStyle(color: SirexeTheme.accent,
+            fontSize: 13, fontWeight: FontWeight.w600)),
+      ]),
+      const SizedBox(height: 12),
+      _Line('Camion',    pesee.camionId),
+      _Line('Poids net', '${pesee.poidsNet} kg'),
+      _Line('GPS',
+        '${pesee.latitude.toStringAsFixed(5)}°N · '
+        '${pesee.longitude.toStringAsFixed(5)}°W'),
+      const SizedBox(height: 10),
+      const Text('Hash SHA-256', style: TextStyle(
+        color: SirexeTheme.textSecondary, fontSize: 10,
+        fontWeight: FontWeight.w500, letterSpacing: 0.5)),
+      const SizedBox(height: 5),
+      Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: SirexeTheme.background,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: SirexeTheme.border)),
+        child: Text(pesee.hash,
+          style: const TextStyle(
+            color: SirexeTheme.textPrimary,
+            fontSize: 10, fontFamily: 'monospace',
+            letterSpacing: 0.5)),
+      ),
+      const SizedBox(height: 8),
+      const Row(children: [
+        Icon(Icons.cloud_upload_outlined,
+          color: SirexeTheme.warning, size: 12),
+        SizedBox(width: 5),
+        Text('En attente de synchronisation',
+          style: TextStyle(color: SirexeTheme.warning, fontSize: 11)),
+      ]),
+    ]),
+  );
+}
+
+class _Line extends StatelessWidget {
+  final String label, value;
+  const _Line(this.label, this.value);
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: 5),
+    child: Row(children: [
+      SizedBox(width: 80, child: Text(label, style: const TextStyle(
+        color: SirexeTheme.textSecondary, fontSize: 12))),
+      Expanded(child: Text(value, style: const TextStyle(
+        color: SirexeTheme.textPrimary, fontSize: 12))),
+    ]),
+  );
 }
