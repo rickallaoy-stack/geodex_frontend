@@ -1,10 +1,13 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:geodex/apps/ministere/ministere_app.dart';
+import 'package:geodex/apps/auth/login_screen.dart';
 
 void main() {
-  testWidgets('App loads smoke test', (WidgetTester tester) async {
-    await tester.pumpWidget(const MinistereApp());
-    expect(find.byType(MinistereApp), findsOneWidget);
+  testWidgets('LoginScreen loads smoke test', (WidgetTester tester) async {
+    await tester.pumpWidget(const MaterialApp(
+      home: LoginScreen(),
+    ));
+    expect(find.byType(LoginScreen), findsOneWidget);
   });
 }
