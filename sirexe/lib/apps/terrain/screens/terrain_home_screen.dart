@@ -38,6 +38,19 @@ class _TerrainHomeScreenState extends State<TerrainHomeScreen> {
 
   final MapController _terrainMapController = MapController();
 
+  static const _sitesTest = [
+    ('Ma position réelle', null, null),
+    ('Tongon (zone valide)', 9.167, -6.483),
+    ('Séguéla (zone valide)', 7.967, -6.667),
+    ('Boundiali Nord (illégal)', 9.52, -6.48),
+    ('Hiré (suspendu)', 5.733, -4.383),
+    ('Koun-Fao (expiré)', 7.283, -3.000),
+  ];
+
+  Position? _positionSimulee;
+
+  Position? get _positionActive => _positionSimulee ?? _position;
+
   @override
   void initState() {
     super.initState();
@@ -104,7 +117,7 @@ class _TerrainHomeScreenState extends State<TerrainHomeScreen> {
       setState(() => _erreur = 'Remplir tous les champs');
       return;
     }
-    if (_position == null) {
+    if (_positionActive == null) {
       setState(() => _erreur = 'GPS requis — réessayer');
       return;
     }
@@ -134,8 +147,8 @@ class _TerrainHomeScreenState extends State<TerrainHomeScreen> {
       camionId:  camionId,
       poidsNet:  poidsNet,
       timestamp: timestamp,
-      latitude:  _position!.latitude,
-      longitude: _position!.longitude,
+      latitude:  _positionActive!.latitude,
+      longitude: _positionActive!.longitude,
     );
 
     final pesee = Pesee(
@@ -147,8 +160,8 @@ class _TerrainHomeScreenState extends State<TerrainHomeScreen> {
       poidsBrut: poidsBrut,
       tare:      tare,
       timestamp: timestamp,
-      latitude:  _position!.latitude,
-      longitude: _position!.longitude,
+      latitude:  _positionActive!.latitude,
+      longitude: _positionActive!.longitude,
       hash:      hash,
       statut:    StatutPesee.valide,
     );
@@ -234,8 +247,8 @@ class _TerrainHomeScreenState extends State<TerrainHomeScreen> {
   }
 
   Widget _buildMapTab() {
-    final center = _position != null
-      ? LatLng(_position!.latitude, _position!.longitude)
+    final center = _positionActive != null
+      ? LatLng(_positionActive!.latitude, _positionActive!.longitude)
       : const LatLng(7.5, -5.5);
 
     return Stack(children: [
@@ -243,7 +256,7 @@ class _TerrainHomeScreenState extends State<TerrainHomeScreen> {
         mapController: _terrainMapController,
         options: MapOptions(
           initialCenter: center,
-          initialZoom: _position != null ? 10.0 : 6.2,
+          initialZoom: _positionActive != null ? 10.0 : 6.2,
           minZoom: 3,
           maxZoom: 16,
         ),
@@ -276,11 +289,12 @@ class _TerrainHomeScreenState extends State<TerrainHomeScreen> {
                 borderStrokeWidth: 1,
               )).toList(),
           ),
-          if (_position != null)
+          if (_positionActive != null)
             MarkerLayer(markers: [
               Marker(
                 point: LatLng(
-                  _position!.latitude, _position!.longitude),
+                  _positionActive!.latitude,
+                  _positionActive!.longitude),
                 width: 40, height: 40,
                 child: Container(
                   decoration: BoxDecoration(
@@ -294,7 +308,60 @@ class _TerrainHomeScreenState extends State<TerrainHomeScreen> {
             ]),
         ],
       ),
-      if (_position != null)
+      Positioned(top: 12, left: 12,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: SirexeTheme.surface.withOpacity(0.95),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: _positionSimulee != null
+                ? SirexeTheme.warning : SirexeTheme.border)),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            Icon(Icons.science_outlined,
+              color: _positionSimulee != null
+                ? SirexeTheme.warning : SirexeTheme.textSecondary,
+              size: 13),
+            const SizedBox(width: 6),
+            DropdownButton<int>(
+              value: null,
+              hint: Text(
+                _positionSimulee != null ? 'Mode simulation' : 'Téléporter →',
+                style: TextStyle(
+                  color: _positionSimulee != null
+                    ? SirexeTheme.warning : SirexeTheme.textSecondary,
+                  fontSize: 11)),
+              underline: const SizedBox(),
+              isDense: true,
+              dropdownColor: SirexeTheme.surface,
+              items: _sitesTest.asMap().entries.map((e) =>
+                DropdownMenuItem<int>(
+                  value: e.key,
+                  child: Text(e.value.$1, style: const TextStyle(
+                    color: SirexeTheme.textPrimary, fontSize: 12)),
+                )
+              ).toList(),
+              onChanged: (i) {
+                if (i == null) return;
+                final site = _sitesTest[i];
+                if (site.$2 == null) {
+                  setState(() => _positionSimulee = null);
+                  if (_position != null) {
+                    _terrainMapController.move(
+                      LatLng(_position!.latitude, _position!.longitude), 10);
+                  }
+                } else {
+                  setState(() => _positionSimulee = _fakePosition(
+                    site.$2!, site.$3!));
+                  _terrainMapController.move(
+                    LatLng(site.$2!, site.$3!), 11);
+                }
+              },
+            ),
+          ]),
+        ),
+      ),
+      if (_positionActive != null)
         Positioned(bottom: 16, left: 16,
           child: Container(
             padding: const EdgeInsets.symmetric(
@@ -304,14 +371,18 @@ class _TerrainHomeScreenState extends State<TerrainHomeScreen> {
               borderRadius: BorderRadius.circular(7),
               border: Border.all(color: SirexeTheme.border)),
             child: Row(mainAxisSize: MainAxisSize.min, children: [
-              const Icon(Icons.gps_fixed,
-                color: SirexeTheme.accentBlue, size: 12),
+              Icon(Icons.gps_fixed,
+                color: _positionSimulee != null
+                  ? SirexeTheme.warning : SirexeTheme.accentBlue,
+                size: 12),
               const SizedBox(width: 6),
               Text(
-                '${_position!.latitude.toStringAsFixed(4)}°N  '
-                '${_position!.longitude.toStringAsFixed(4)}°W',
-                style: const TextStyle(
-                  color: SirexeTheme.textPrimary,
+                '${_positionActive!.latitude.toStringAsFixed(4)}°N  '
+                '${_positionActive!.longitude.toStringAsFixed(4)}°W'
+                '${_positionSimulee != null ? '  · SIMULATION' : ''}',
+                style: TextStyle(
+                  color: _positionSimulee != null
+                    ? SirexeTheme.warning : SirexeTheme.textPrimary,
                   fontSize: 11, fontFamily: 'monospace')),
             ]),
           ),
@@ -338,9 +409,9 @@ class _TerrainHomeScreenState extends State<TerrainHomeScreen> {
       Positioned(bottom: 16, right: 16,
         child: GestureDetector(
           onTap: () {
-            if (_position != null) {
+            if (_positionActive != null) {
               _terrainMapController.move(
-                LatLng(_position!.latitude, _position!.longitude),
+                LatLng(_positionActive!.latitude, _positionActive!.longitude),
                 12.0);
             }
           },
@@ -360,6 +431,19 @@ class _TerrainHomeScreenState extends State<TerrainHomeScreen> {
       ),
     ]);
   }
+
+  Position _fakePosition(double lat, double lng) => Position(
+    latitude:         lat,
+    longitude:        lng,
+    accuracy:         5.0,
+    altitude:         200.0,
+    altitudeAccuracy: 5.0,
+    heading:          0.0,
+    headingAccuracy:  0.0,
+    speed:            0.0,
+    speedAccuracy:    0.0,
+    timestamp:        DateTime.now(),
+  );
 }
 
 class _Topbar extends StatelessWidget {
