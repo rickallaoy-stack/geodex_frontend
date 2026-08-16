@@ -40,11 +40,11 @@ class GeoTopBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     // Compteurs
     final nActifs =
-        permis.where((p) => p.statut == StatutPermis.actif).length;
+        permis.where((p) => p.statut == StatutPermis.valide).length;
     final nSuspendus =
         permis.where((p) => p.statut == StatutPermis.suspendu).length;
     final nExpires =
-        permis.where((p) => p.statut == StatutPermis.expire).length;
+        permis.where((p) => p.statut == StatutPermis.revoque).length;
     final nAlertes =
         permis.where((p) => p.statut == StatutPermis.illegal).length;
 
@@ -73,13 +73,13 @@ class GeoTopBar extends StatelessWidget implements PreferredSizeWidget {
                 children: [
                   _StatChip(
                     count: nActifs,
-                    label: 'permis\nactifs',
+                    label: 'permis\nvalides',
                     dotColor: _colorActif,
-                    actif: filtreActif == StatutPermis.actif,
+                    actif: filtreActif == StatutPermis.valide,
                     onTap: () => onFiltreStatut(
-                      filtreActif == StatutPermis.actif
+                      filtreActif == StatutPermis.valide
                           ? null
-                          : StatutPermis.actif,
+                          : StatutPermis.valide,
                     ),
                   ),
                   const SizedBox(width: 6),
@@ -97,13 +97,13 @@ class GeoTopBar extends StatelessWidget implements PreferredSizeWidget {
                   const SizedBox(width: 6),
                   _StatChip(
                     count: nExpires,
-                    label: 'expirés',
+                    label: 'révoqués',
                     dotColor: _colorExpire,
-                    actif: filtreActif == StatutPermis.expire,
+                    actif: filtreActif == StatutPermis.revoque,
                     onTap: () => onFiltreStatut(
-                      filtreActif == StatutPermis.expire
+                      filtreActif == StatutPermis.revoque
                           ? null
-                          : StatutPermis.expire,
+                          : StatutPermis.revoque,
                     ),
                   ),
                   const SizedBox(width: 6),

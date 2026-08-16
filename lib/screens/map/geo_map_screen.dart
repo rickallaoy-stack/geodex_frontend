@@ -19,11 +19,18 @@ class _GeoMapScreenState extends State<GeoMapScreen> {
   GeoMapStatus _status = GeoMapStatus.loading;
   String? _errorMessage;
   GeoJsonFeatureCollection? _collection;
+  final _mapController = MapController();
 
   @override
   void initState() {
     super.initState();
     _loadGeology();
+  }
+
+  @override
+  void dispose() {
+    _mapController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadGeology() async {
@@ -79,7 +86,7 @@ class _GeoMapScreenState extends State<GeoMapScreen> {
             point: point,
             width: 36,
             height: 36,
-            builder: (context) => const Icon(
+            child: const Icon(
               Icons.location_on,
               color: Colors.red,
               size: 28,
@@ -138,10 +145,11 @@ class _GeoMapScreenState extends State<GeoMapScreen> {
           ),
         );
       case GeoMapStatus.success:
-        return FlutterMap(
+        final map = FlutterMap(
+          mapController: _mapController,
           options: MapOptions(
-            center: const LatLng(7.8, -5.3),
-            zoom: 6,
+            initialCenter: const LatLng(7.8, -5.3),
+            initialZoom: 6,
             minZoom: 3,
             maxZoom: 16,
           ),
@@ -155,6 +163,56 @@ class _GeoMapScreenState extends State<GeoMapScreen> {
             MarkerLayer(markers: _buildMarkers()),
           ],
         );
+        return Stack(
+          children: [
+            map,
+            Positioned(
+              right: 16,
+              bottom: 24,
+              child: Column(
+                children: [
+                  _ZoomButton(
+                    icon: Icons.add,
+                    onTap: () {
+                      final current = _mapController.camera.zoom;
+                      _mapController.move(_mapController.camera.center, current + 1);
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  _ZoomButton(
+                    icon: Icons.remove,
+                    onTap: () {
+                      final current = _mapController.camera.zoom;
+                      _mapController.move(_mapController.camera.center, current - 1);
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
     }
+  }
+}
+
+class _ZoomButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  const _ZoomButton({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white.withOpacity(0.9),
+      shape: const CircleBorder(),
+      child: InkWell(
+        onTap: onTap,
+        customBorder: const CircleBorder(),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Icon(icon, color: Colors.black87),
+        ),
+      ),
+    );
   }
 }

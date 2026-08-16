@@ -139,7 +139,6 @@ class _MapScreenState extends State<MapScreen> {
         color: p.couleur.withOpacity(0.25),
         borderColor: p.couleur,
         borderStrokeWidth: p.statut == StatutPermis.illegal ? 2.5 : 1.5,
-        isFilled: true,
       )).toList();
   }
 

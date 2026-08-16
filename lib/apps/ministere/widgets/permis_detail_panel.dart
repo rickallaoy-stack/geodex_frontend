@@ -57,8 +57,10 @@ class PermisDetailPanel extends StatelessWidget {
             _Chip(Icons.straighten,
               '${permis.superficieHa.toStringAsFixed(0)} ha'),
             _Chip(Icons.calendar_today_outlined,
-              'Exp. ${permis.dateExpiration.day}/${permis.dateExpiration.month}/${permis.dateExpiration.year}',
-              color: permis.statut == StatutPermis.expire
+              permis.dateExpiration != null
+                ? 'Exp. ${permis.dateExpiration!.day}/${permis.dateExpiration!.month}/${permis.dateExpiration!.year}'
+                : 'Exp. —',
+              color: permis.statut == StatutPermis.revoque
                 ? SirexeTheme.danger : null),
           ]),
         ),

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../core/theme.dart';
-import '../ministere/ministere_app.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -61,11 +60,9 @@ class _LoginScreenState extends State<LoginScreen>
     setState(() => _loading = false);
 
     if (_role == Role.ministere) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const MinistereApp()));
+      Navigator.of(context).pushReplacementNamed('/ministere');
     } else {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const MinistereApp()));
+      Navigator.of(context).pushReplacementNamed('/terrain');
     }
   }
 
@@ -106,28 +103,21 @@ class _LoginScreenState extends State<LoginScreen>
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: SirexeTheme.accentBlue.withOpacity(0.08),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: SirexeTheme.accentBlue.withOpacity(0.25))),
-                      child: Row(mainAxisSize: MainAxisSize.min, children: [
-                        Container(width: 9, height: 9,
-                          decoration: const BoxDecoration(
-                            color: SirexeTheme.accentBlue,
-                            shape: BoxShape.circle)),
-                        const SizedBox(width: 10),
-                        const Text('GEODEX', style: TextStyle(
-                          color: SirexeTheme.textPrimary,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 20, letterSpacing: 3)),
-                      ]),
+                      child: Image.asset(
+                        'assets/Gemini_Generated_Image_.png',
+                        height: 120,
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) {
+                          return const Icon(Icons.public, size: 80, color: SirexeTheme.accentBlue);
+                        },
+                      ),
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      'Système de gestion des permis miniers · CI',
+                      'EXPLORE. TRACER. COMPRENDRE.',
                       style: TextStyle(
-                        color: SirexeTheme.textSecondary, fontSize: 13),
+                        color: SirexeTheme.textSecondary,
+                        fontSize: 11, letterSpacing: 2),
                       textAlign: TextAlign.center),
                     const SizedBox(height: 28),
                     Row(children: [

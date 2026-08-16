@@ -8,7 +8,7 @@ class SidebarPermis extends StatefulWidget {
   final bool showGeology, showPermis, showIllegal, showGeofences;
   final ValueChanged<bool> onToggleGeology, onTogglePermis,
     onToggleIllegal, onToggleGeofences;
-  final VoidCallback onSimulerAlerte;
+  final VoidCallback? onSimulerAlerte;
 
   const SidebarPermis({super.key,
     this.selected,
@@ -17,7 +17,7 @@ class SidebarPermis extends StatefulWidget {
     required this.showIllegal, required this.showGeofences,
     required this.onToggleGeology, required this.onTogglePermis,
     required this.onToggleIllegal, required this.onToggleGeofences,
-    required this.onSimulerAlerte,
+    this.onSimulerAlerte,
   });
 
   @override
@@ -54,8 +54,8 @@ class _SidebarPermisState extends State<SidebarPermis> {
           children: [
             _Chip(label: 'Tout', active: _filter == null,
               onTap: () => setState(() => _filter = null)),
-            _Chip(label: 'Actifs', active: _filter == StatutPermis.actif,
-              onTap: () => setState(() => _filter = StatutPermis.actif)),
+            _Chip(label: 'Valides', active: _filter == StatutPermis.valide,
+              onTap: () => setState(() => _filter = StatutPermis.valide)),
             _Chip(label: 'Illégaux', active: _filter == StatutPermis.illegal,
               color: SirexeTheme.danger,
               onTap: () => setState(() => _filter = StatutPermis.illegal)),
