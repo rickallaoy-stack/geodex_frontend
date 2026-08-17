@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="64" viewBox="0 0 240 64">
+  <rect width="100%" height="100%" fill="none"/>
+  <g>
+    <circle cx="40" cy="32" r="18" fill="#2E9166" />
+    <circle cx="40" cy="32" r="6" fill="#E7F0F3" opacity="0.95" />
+    <text x="72" y="40" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="800" fill="#E7F0F3">GEODEX</text>
+    <text x="72" y="54" font-family="Inter, Arial, sans-serif" font-size="10" fill="#9AA6AF">Cadastre minier · Côte d'Ivoire</text>
+  </g>
+</svg>

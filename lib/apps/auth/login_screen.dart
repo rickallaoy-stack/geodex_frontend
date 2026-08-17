@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme.dart';
+import '../../widgets/app_icon.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -108,7 +109,7 @@ class _LoginScreenState extends State<LoginScreen>
                         height: 120,
                         fit: BoxFit.contain,
                         errorBuilder: (context, error, stackTrace) {
-                          return const Icon(Icons.public, size: 80, color: SirexeTheme.accentBlue);
+                          return AppIcon.fromIconData(Icons.public, size: 80, color: SirexeTheme.accentBlue);
                         },
                       ),
                     ),
@@ -153,22 +154,21 @@ class _LoginScreenState extends State<LoginScreen>
                       icon: Icons.lock_outline,
                       obscure: _obscure,
                       suffix: IconButton(
-                        icon: Icon(
-                          _obscure
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off_outlined,
+                        icon: AppIcon.fromIconData(
+                          _obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
                           size: 16,
-                          color: SirexeTheme.textSecondary),
-                        onPressed: () =>
-                          setState(() => _obscure = !_obscure),
+                          color: SirexeTheme.textSecondary,
+                        ),
+                        onPressed: () => setState(() => _obscure = !_obscure),
                         padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints())),
+                        constraints: const BoxConstraints(),
+                      )),
                     const SizedBox(height: 6),
                     if (_error != null)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 8),
                         child: Row(children: [
-                          const Icon(Icons.error_outline,
+                          AppIcon.fromIconData(Icons.error_outline,
                             color: SirexeTheme.danger, size: 13),
                           const SizedBox(width: 6),
                           Text(_error!, style: const TextStyle(
@@ -327,7 +327,7 @@ class _Field extends StatelessWidget {
           hintText: hint,
           hintStyle: const TextStyle(
             color: SirexeTheme.textSecondary, fontSize: 13),
-          prefixIcon: Icon(icon,
+          prefixIcon: AppIcon.fromIconData(icon,
             color: SirexeTheme.textSecondary, size: 16),
           suffixIcon: suffix,
           filled: true,

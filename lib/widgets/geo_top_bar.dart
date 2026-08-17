@@ -1,17 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../models/permis_minier.dart';
-
-// ─── Palette GEODEX ───────────────────────────────────────────────────────────
-const _bg = Color(0xFF0E1117);
-const _surface = Color(0xFF161B22);
-const _border = Color(0xFF2A3244);
-const _textPrimary = Color(0xFFE6EDF3);
-const _textMuted = Color(0xFF7D8590);
-
-const _colorActif = Color(0xFF3FB950);
-const _colorSuspendu = Color(0xFF4D8FD6);
-const _colorExpire = Color(0xFF8B949E);
-const _colorAlerte = Color(0xFFFF4444);
+import '../core/theme.dart';
+import 'app_icon.dart';
 
 /// Topbar principale de GEODEX.
 ///
@@ -51,8 +42,8 @@ class GeoTopBar extends StatelessWidget implements PreferredSizeWidget {
     return Container(
       height: 52,
       decoration: BoxDecoration(
-        color: _bg,
-        border: Border(bottom: BorderSide(color: _border, width: 1)),
+        color: SirexeTheme.surface,
+        border: Border(bottom: BorderSide(color: SirexeTheme.border, width: 1)),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Row(
@@ -62,7 +53,7 @@ class GeoTopBar extends StatelessWidget implements PreferredSizeWidget {
           const SizedBox(width: 16),
 
           // ── Séparateur vertical ──────────────────────────────────────
-          Container(width: 1, height: 24, color: _border),
+          Container(width: 1, height: 24, color: SirexeTheme.border),
           const SizedBox(width: 16),
 
           // ── Stat chips ───────────────────────────────────────────────
@@ -74,7 +65,7 @@ class GeoTopBar extends StatelessWidget implements PreferredSizeWidget {
                   _StatChip(
                     count: nActifs,
                     label: 'permis\nvalides',
-                    dotColor: _colorActif,
+                    dotColor: SirexeTheme.success,
                     actif: filtreActif == StatutPermis.valide,
                     onTap: () => onFiltreStatut(
                       filtreActif == StatutPermis.valide
@@ -86,7 +77,7 @@ class GeoTopBar extends StatelessWidget implements PreferredSizeWidget {
                   _StatChip(
                     count: nSuspendus,
                     label: 'suspendus',
-                    dotColor: _colorSuspendu,
+                    dotColor: SirexeTheme.accentBlue,
                     actif: filtreActif == StatutPermis.suspendu,
                     onTap: () => onFiltreStatut(
                       filtreActif == StatutPermis.suspendu
@@ -98,7 +89,7 @@ class GeoTopBar extends StatelessWidget implements PreferredSizeWidget {
                   _StatChip(
                     count: nExpires,
                     label: 'révoqués',
-                    dotColor: _colorExpire,
+                    dotColor: SirexeTheme.textSecondary,
                     actif: filtreActif == StatutPermis.revoque,
                     onTap: () => onFiltreStatut(
                       filtreActif == StatutPermis.revoque
@@ -128,14 +119,14 @@ class GeoTopBar extends StatelessWidget implements PreferredSizeWidget {
             child: Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: _surface,
-                border: Border.all(color: _border),
-                borderRadius: BorderRadius.circular(6),
+                color: SirexeTheme.surfaceElevated,
+                border: Border.all(color: SirexeTheme.border),
+                borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(
+              child: AppIcon.fromIconData(
                 Icons.more_horiz_rounded,
-                color: _textMuted,
-                size: 16,
+                color: SirexeTheme.textSecondary,
+                size: 18,
               ),
             ),
           ),
@@ -147,56 +138,35 @@ class GeoTopBar extends StatelessWidget implements PreferredSizeWidget {
 
 // ─── Logo GEODEX ─────────────────────────────────────────────────────────────
 
-class _GeoLogo extends StatefulWidget {
-  @override
-  State<_GeoLogo> createState() => _GeoLogoState();
-}
-
-class _GeoLogoState extends State<_GeoLogo>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl;
-  late final Animation<double> _pulse;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1800),
-    )..repeat(reverse: true);
-    _pulse = Tween<double>(begin: 0.4, end: 1.0).animate(
-      CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
+class _GeoLogo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Point pulsant
-        AnimatedBuilder(
-          animation: _pulse,
-          builder: (_, __) => Container(
-            width: 10,
-            height: 10,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: const Color(0xFF4D8FD6).withOpacity(_pulse.value),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF4D8FD6)
-                      .withOpacity(_pulse.value * 0.6),
-                  blurRadius: 6,
-                  spreadRadius: 2,
-                ),
-              ],
+        // Logo: préfère SVG (assets/images/logo_dark.svg), fallback PNG Gemini
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.25),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: SvgPicture.asset(
+              'assets/images/logo_dark.svg',
+              fit: BoxFit.cover,
+              placeholderBuilder: (context) => Image.asset(
+                'assets/Gemini_Generated_Image_.png',
+                fit: BoxFit.cover,
+              ),
             ),
           ),
         ),
@@ -204,21 +174,21 @@ class _GeoLogoState extends State<_GeoLogo>
         Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
+          children: [
             Text(
               'GEODEX',
               style: TextStyle(
-                color: _textPrimary,
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 1.5,
+                color: SirexeTheme.textPrimary,
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 1.6,
               ),
             ),
             Text(
               'Cadastre minier · Côte d\'Ivoire',
               style: TextStyle(
-                color: _textMuted,
-                fontSize: 9,
+                color: SirexeTheme.textSecondary,
+                fontSize: 10,
                 letterSpacing: 0.3,
               ),
             ),
@@ -250,13 +220,13 @@ class _StatChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: AnimatedContainer(
+        child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
-          color: actif ? dotColor.withOpacity(0.15) : _surface,
+          color: actif ? dotColor.withOpacity(0.15) : SirexeTheme.surfaceElevated,
           border: Border.all(
-            color: actif ? dotColor.withOpacity(0.5) : _border,
+            color: actif ? dotColor.withOpacity(0.5) : SirexeTheme.border,
           ),
           borderRadius: BorderRadius.circular(6),
         ),
@@ -278,15 +248,15 @@ class _StatChip extends StatelessWidget {
                   TextSpan(
                     text: '$count ',
                     style: TextStyle(
-                      color: actif ? dotColor : _textPrimary,
+                      color: actif ? dotColor : SirexeTheme.textPrimary,
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                   TextSpan(
                     text: label.replaceAll('\n', ' '),
-                    style: const TextStyle(
-                      color: _textMuted,
+                    style: TextStyle(
+                      color: SirexeTheme.textSecondary,
                       fontSize: 11,
                     ),
                   ),
@@ -317,40 +287,39 @@ class _AlerteChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: AnimatedContainer(
+        child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
           // Toujours un fond rouge marqué — c'est une alerte
           color: actif
-              ? _colorAlerte.withOpacity(0.30)
-              : _colorAlerte.withOpacity(0.15),
+              ? SirexeTheme.danger.withOpacity(0.30)
+              : SirexeTheme.danger.withOpacity(0.15),
           border: Border.all(
-            color: _colorAlerte.withOpacity(actif ? 0.8 : 0.5),
+            color: SirexeTheme.danger.withOpacity(actif ? 0.8 : 0.5),
           ),
           borderRadius: BorderRadius.circular(6),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.warning_rounded,
-              color: _colorAlerte,
-              size: 12,
-            ),
+            SizedBox(width: 12, height: 12,
+              child: SvgPicture.asset(
+                'assets/images/icon_alert_dark.svg',
+                width: 12, height: 12, color: SirexeTheme.danger)),
             const SizedBox(width: 5),
             Text(
               '$count alertes',
-              style: const TextStyle(
-                color: _colorAlerte,
+              style: TextStyle(
+                color: SirexeTheme.danger,
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
               ),
             ),
             const SizedBox(width: 3),
-            const Text(
+            Text(
               'fraude',
-              style: TextStyle(color: _colorAlerte, fontSize: 11),
+              style: TextStyle(color: SirexeTheme.danger, fontSize: 11),
             ),
           ],
         ),

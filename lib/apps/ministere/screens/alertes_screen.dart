@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../../core/theme.dart';
 import '../../../core/services/pesee_service.dart';
+import '../../../widgets/app_icon.dart';
 
 class AlertesScreen extends StatefulWidget {
   const AlertesScreen({super.key});
@@ -67,8 +69,8 @@ class _AlertesScreenState extends State<AlertesScreen> {
                     border: Border.all(
                       color: SirexeTheme.danger.withOpacity(0.4))),
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
-                    const Icon(Icons.warning_amber_rounded,
-                      color: SirexeTheme.danger, size: 14),
+                    SizedBox(width: 14, height: 14,
+                      child: SvgPicture.asset('assets/images/icon_alert_dark.svg', width: 14, height: 14, color: SirexeTheme.danger)),
                     const SizedBox(width: 6),
                     Text('${_alertes.length} alertes fraude',
                       style: const TextStyle(
@@ -79,7 +81,7 @@ class _AlertesScreenState extends State<AlertesScreen> {
                 const Spacer(),
                 GestureDetector(
                   onTap: _loading ? null : _load,
-                  child: const Icon(Icons.refresh,
+                  child: AppIcon.fromIconData(Icons.refresh,
                     color: SirexeTheme.textSecondary, size: 18)),
               ]),
             ),
@@ -109,7 +111,7 @@ class _AlertesScreenState extends State<AlertesScreen> {
                               decoration: BoxDecoration(
                                 color: SirexeTheme.danger.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(7)),
-                              child: const Icon(Icons.location_off,
+                              child: AppIcon.fromIconData(Icons.location_off,
                                 color: SirexeTheme.danger, size: 16)),
                             const SizedBox(width: 10),
                             Expanded(child: Column(
@@ -126,7 +128,7 @@ class _AlertesScreenState extends State<AlertesScreen> {
                                   overflow: TextOverflow.ellipsis),
                                 const SizedBox(height: 4),
                                 Row(children: [
-                                  const Icon(Icons.scale_outlined,
+                                  AppIcon.fromIconData(Icons.scale_outlined,
                                     size: 11,
                                     color: SirexeTheme.textSecondary),
                                   const SizedBox(width: 3),
@@ -136,7 +138,7 @@ class _AlertesScreenState extends State<AlertesScreen> {
                                       color: SirexeTheme.textSecondary,
                                       fontSize: 10)),
                                   const SizedBox(width: 10),
-                                  const Icon(Icons.access_time,
+                                  AppIcon.fromIconData(Icons.access_time,
                                     size: 11,
                                     color: SirexeTheme.textSecondary),
                                   const SizedBox(width: 3),
@@ -182,7 +184,7 @@ class _AlertesScreenState extends State<AlertesScreen> {
                           ? SirexeTheme.accent.withOpacity(0.3)
                           : SirexeTheme.danger.withOpacity(0.3))),
                     child: Row(children: [
-                      Icon(
+                      AppIcon.fromIconData(
                         _integre
                           ? Icons.verified_outlined
                           : Icons.gpp_bad_outlined,
@@ -217,7 +219,7 @@ class _AlertesScreenState extends State<AlertesScreen> {
                             strokeWidth: 2,
                             color: SirexeTheme.accentBlue))
                       else
-                        const Icon(Icons.link,
+                        AppIcon.fromIconData(Icons.link,
                           color: SirexeTheme.accentBlue, size: 18),
                       const SizedBox(width: 10),
                       Text(
@@ -279,12 +281,12 @@ class _AlertesScreenState extends State<AlertesScreen> {
 
 class _EmptyState extends StatelessWidget {
   @override
-  Widget build(BuildContext context) => const Center(
+  Widget build(BuildContext context) => Center(
     child: Column(mainAxisSize: MainAxisSize.min, children: [
-      Icon(Icons.check_circle_outline,
+      AppIcon.fromIconData(Icons.check_circle_outline,
         color: SirexeTheme.accent, size: 40),
-      SizedBox(height: 12),
-      Text('Aucune alerte fraude détectée',
+      const SizedBox(height: 12),
+      const Text('Aucune alerte fraude détectée',
         style: TextStyle(color: SirexeTheme.textSecondary, fontSize: 14)),
     ]),
   );

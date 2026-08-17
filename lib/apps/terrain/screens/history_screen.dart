@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme.dart';
+import '../../../widgets/app_icon.dart';
 import '../../../models/terrain_modules.dart';
 
 class HistoryScreen extends StatefulWidget {
@@ -28,7 +29,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         actions: [
           IconButton(
             onPressed: () => setState(() => _future = TerrainServices.pesee.getPourPermis('demo-001')),
-            icon: const Icon(Icons.refresh_outlined, color: SirexeTheme.textSecondary),
+            icon: AppIcon.fromIconData(Icons.refresh_outlined, color: SirexeTheme.textSecondary, size: 18),
           ),
         ],
       ),
@@ -77,7 +78,7 @@ class _HistoryCard extends StatelessWidget {
             color: SirexeTheme.accent.withOpacity(0.08),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: const Icon(Icons.scale_outlined, color: SirexeTheme.accent, size: 20),
+          child: AppIcon.fromIconData(Icons.scale_outlined, color: SirexeTheme.accent, size: 20),
         ),
         const SizedBox(width: 12),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

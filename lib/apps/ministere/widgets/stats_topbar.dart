@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../../core/theme.dart';
 import '../../../models/permis_minier.dart';
 
@@ -70,8 +71,7 @@ class StatsTopbar extends StatelessWidget implements PreferredSizeWidget {
                       color: SirexeTheme.danger.withOpacity(0.5)),
                   ),
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
-                    const Icon(Icons.warning_amber_rounded,
-                      color: SirexeTheme.danger, size: 13),
+                    SizedBox(width: 13, height: 13, child: SvgPicture.asset('assets/images/icon_alert_dark.svg', width: 13, height: 13, color: SirexeTheme.danger)),
                     const SizedBox(width: 5),
                     Text('$alerteCount alerte${alerteCount > 1 ? 's' : ''} fraude',
                       style: const TextStyle(color: SirexeTheme.danger,

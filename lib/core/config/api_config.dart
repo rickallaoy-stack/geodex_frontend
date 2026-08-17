@@ -4,7 +4,7 @@
 /// des URLs de backend hardcodées dans les widgets.
 class ApiConfig {
   static const String baseUrl =
-      String.fromEnvironment('GEODEX_API_BASE_URL', defaultValue: 'http://localhost:3000');
+      String.fromEnvironment('GEODEX_API_BASE_URL', defaultValue: 'https://dgn6gddt-3000.uks1.devtunnels.ms');
 
   static const int timeoutSeconds =
       int.fromEnvironment('GEODEX_API_TIMEOUT', defaultValue: 15);

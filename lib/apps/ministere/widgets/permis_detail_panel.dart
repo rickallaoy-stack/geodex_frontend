@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../../core/theme.dart';
+import '../../../widgets/app_icon.dart';
 import '../../../models/permis_minier.dart';
 
 class PermisDetailPanel extends StatelessWidget {
@@ -38,7 +40,7 @@ class PermisDetailPanel extends StatelessWidget {
               color: SirexeTheme.textPrimary,
               fontSize: 15, fontWeight: FontWeight.w700))),
             IconButton(
-              icon: const Icon(Icons.close, color: SirexeTheme.textSecondary, size: 18),
+              icon: AppIcon.fromIconData(Icons.close, color: SirexeTheme.textSecondary, size: 18),
               onPressed: onClose, padding: EdgeInsets.zero,
               constraints: const BoxConstraints()),
           ]),
@@ -75,10 +77,12 @@ class PermisDetailPanel extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: SirexeTheme.danger.withOpacity(0.4)),
               ),
-              child: const Row(children: [
-                Icon(Icons.warning_amber_rounded,
-                  color: SirexeTheme.danger, size: 15),
-                SizedBox(width: 8),
+              child: Row(children: [
+                SizedBox(width: 15, height: 15,
+                  child: SvgPicture.asset(
+                    'assets/images/icon_alert_dark.svg',
+                    width: 15, height: 15, color: SirexeTheme.danger)),
+                const SizedBox(width: 8),
                 Expanded(child: Text(
                   'Site hors permis détecté — Alerte transmise au ministère',
                   style: TextStyle(color: SirexeTheme.danger, fontSize: 11))),
@@ -120,8 +124,8 @@ class _Chip extends StatelessWidget {
         color: SirexeTheme.surfaceElevated,
         borderRadius: BorderRadius.circular(5),
       ),
-      child: Row(mainAxisSize: MainAxisSize.min, children: [
-        Icon(icon, size: 11, color: c),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+        AppIcon.fromIconData(icon, size: 11, color: c),
         const SizedBox(width: 5),
         Text(label, style: TextStyle(color: c, fontSize: 11)),
       ]),
@@ -151,7 +155,7 @@ class _ActionBtn extends StatelessWidget {
               color: danger ? SirexeTheme.danger.withOpacity(0.4) : SirexeTheme.border),
           ),
           child: Column(children: [
-            Icon(icon, size: 15, color: c),
+            AppIcon.fromIconData(icon, size: 15, color: c),
             const SizedBox(height: 3),
             Text(label, style: TextStyle(color: c, fontSize: 10)),
           ]),

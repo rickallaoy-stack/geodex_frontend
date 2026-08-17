@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../../core/theme.dart';
+import '../../../widgets/app_icon.dart';
 import '../../../models/permis_minier.dart';
 import '../../../models/terrain_modules.dart';
 
@@ -116,7 +117,7 @@ class _PeseeScreenState extends State<PeseeScreen> {
                   icon: _saving
                     ? const SizedBox(width: 18, height: 18,
                         child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Icon(Icons.save_outlined, color: Colors.white),
+                    : AppIcon.fromIconData(Icons.save_outlined, color: Colors.white, size: 18),
                   label: Text(_saving ? 'Enregistrement...' : 'Enregistrer', style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
                 ),
               ),
@@ -130,7 +131,7 @@ class _PeseeScreenState extends State<PeseeScreen> {
                     border: Border.all(color: SirexeTheme.accent.withOpacity(0.3)),
                   ),
                   child: Row(children: [
-                    const Icon(Icons.check_circle_outline, color: SirexeTheme.accent, size: 18),
+                    AppIcon.fromIconData(Icons.check_circle_outline, color: SirexeTheme.accent, size: 18),
                     const SizedBox(width: 10),
                     Expanded(child: Text(_message!, style: const TextStyle(color: SirexeTheme.textPrimary, fontSize: 13))),
                   ]),
@@ -170,7 +171,7 @@ class _Field extends StatelessWidget {
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: const TextStyle(color: SirexeTheme.textSecondary, fontSize: 13),
-          prefixIcon: Icon(icon, color: SirexeTheme.textSecondary, size: 16),
+          prefixIcon: AppIcon.fromIconData(icon, color: SirexeTheme.textSecondary, size: 16),
           filled: true,
           fillColor: SirexeTheme.surfaceElevated,
           border: OutlineInputBorder(

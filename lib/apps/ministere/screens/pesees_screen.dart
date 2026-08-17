@@ -1,7 +1,9 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/services.dart';
 import '../../../core/theme.dart';
+import '../../../widgets/app_icon.dart';
 import '../../../models/pesee.dart';
 import '../../../models/permis_minier.dart';
 
@@ -135,7 +137,7 @@ class _PeseesScreenState extends State<PeseesScreen> {
                               strokeWidth: 2,
                               color: SirexeTheme.accentBlue))
                         else
-                          const Icon(Icons.sensors,
+                          AppIcon.fromIconData(Icons.sensors,
                             color: SirexeTheme.accentBlue, size: 16),
                         const SizedBox(width: 8),
                         Text(
@@ -188,11 +190,9 @@ class _PeseesScreenState extends State<PeseesScreen> {
                           decoration: BoxDecoration(
                             color: p.couleur.withOpacity(0.12),
                             borderRadius: BorderRadius.circular(6)),
-                          child: Icon(
-                            p.statut == StatutPesee.valide
-                              ? Icons.check_circle_outline
-                              : Icons.warning_amber_rounded,
-                            color: p.couleur, size: 16)),
+                          child: p.statut == StatutPesee.valide
+                            ? AppIcon.fromIconData(Icons.check_circle_outline, color: p.couleur, size: 16)
+                            : SizedBox(width: 16, height: 16, child: SvgPicture.asset('assets/images/icon_alert_dark.svg', width: 16, height: 16, color: p.couleur))),
                         const SizedBox(width: 10),
                         Expanded(child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -280,12 +280,12 @@ class _StatCard extends StatelessWidget {
 
 class _EmptyState extends StatelessWidget {
   @override
-  Widget build(BuildContext context) => const Center(
+  Widget build(BuildContext context) => Center(
     child: Column(mainAxisSize: MainAxisSize.min, children: [
-      Icon(Icons.scale_outlined,
+      AppIcon.fromIconData(Icons.scale_outlined,
         color: SirexeTheme.textSecondary, size: 40),
-      SizedBox(height: 12),
-      Text('Sélectionner une pesée',
+      const SizedBox(height: 12),
+      const Text('Sélectionner une pesée',
         style: TextStyle(color: SirexeTheme.textSecondary, fontSize: 14)),
     ]),
   );
@@ -318,7 +318,7 @@ class _PeseeDetail extends StatelessWidget {
             fontSize: 16, fontWeight: FontWeight.w700)),
           const Spacer(),
           IconButton(
-            icon: const Icon(Icons.close,
+            icon: AppIcon.fromIconData(Icons.close,
               color: SirexeTheme.textSecondary, size: 18),
             onPressed: onClose,
             padding: EdgeInsets.zero,
@@ -357,7 +357,7 @@ class _PeseeDetail extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
               Row(children: [
-                Icon(
+                AppIcon.fromIconData(
                   hashOk
                     ? Icons.lock_outline
                     : Icons.lock_open_outlined,
@@ -392,7 +392,7 @@ class _PeseeDetail extends StatelessWidget {
                         fontFamily: 'monospace',
                         letterSpacing: 0.5))),
                     const SizedBox(width: 8),
-                    const Icon(Icons.copy,
+                    AppIcon.fromIconData(Icons.copy,
                       color: SirexeTheme.textSecondary, size: 14),
                   ]),
                 ),
@@ -415,10 +415,9 @@ class _PeseeDetail extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
                   color: SirexeTheme.danger.withOpacity(0.4))),
-              child: const Row(children: [
-                Icon(Icons.warning_amber_rounded,
-                  color: SirexeTheme.danger, size: 16),
-                SizedBox(width: 8),
+              child: Row(children: [
+                  SizedBox(width: 14, height: 14, child: SvgPicture.asset('assets/images/icon_alert_dark.svg', width: 14, height: 14, color: SirexeTheme.danger)),
+                const SizedBox(width: 8),
                 Expanded(child: Text(
                   'Les données de cette pesée ont été modifiées '
                   'après signature. Transmission automatique aux '

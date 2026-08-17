@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../core/theme.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../models/permis_minier.dart';
+import 'app_icon.dart';
 
 class PermisPanel extends StatelessWidget {
   final PermisMinier permis;
@@ -35,10 +37,10 @@ class PermisPanel extends StatelessWidget {
           ),
           const SizedBox(width: 10),
           Expanded(child: Text(permis.nom,
-            style: const TextStyle(color: SirexeTheme.textPrimary,
+            style: TextStyle(color: SirexeTheme.textPrimary,
               fontWeight: FontWeight.bold, fontSize: 16))),
           IconButton(
-            icon: const Icon(Icons.close, color: SirexeTheme.textSecondary, size: 20),
+            icon: AppIcon.fromIconData(Icons.close, size: 20, color: SirexeTheme.textSecondary),
             onPressed: onClose, padding: EdgeInsets.zero, constraints: const BoxConstraints()),
         ]),
         const SizedBox(height: 12),
@@ -69,9 +71,10 @@ class PermisPanel extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: SirexeTheme.danger.withOpacity(0.5)),
             ),
-            child: const Row(children: [
-              Icon(Icons.warning_amber_rounded, color: SirexeTheme.danger, size: 16),
-              SizedBox(width: 8),
+            child: Row(children: [
+              // Utilise le SVG d'alerte
+              SizedBox(width: 16, height: 16, child: SvgPicture.asset('assets/images/icon_alert_dark.svg')),
+              const SizedBox(width: 8),
               Expanded(child: Text(
                 'Site hors permis détecté — Alerte envoyée au ministère',
                 style: TextStyle(color: SirexeTheme.danger, fontSize: 12))),
@@ -83,21 +86,21 @@ class PermisPanel extends StatelessWidget {
           if (onTonnages != null)
             ElevatedButton.icon(
               onPressed: onTonnages,
-              icon: const Icon(Icons.scale, size: 16),
+              icon: AppIcon.fromIconData(Icons.scale, size: 16),
               label: const Text('Tonnages'),
             ),
           const SizedBox(width: 8),
           if (onHistorique != null)
             ElevatedButton.icon(
               onPressed: onHistorique,
-              icon: const Icon(Icons.history, size: 16),
+              icon: AppIcon.fromIconData(Icons.history, size: 16),
               label: const Text('Historique'),
             ),
           const SizedBox(width: 8),
           if (onSignaler != null)
             ElevatedButton.icon(
               onPressed: onSignaler,
-              icon: const Icon(Icons.report, size: 16),
+              icon: AppIcon.fromIconData(Icons.report, size: 16),
               label: const Text('Signaler'),
             ),
         ]),
@@ -122,7 +125,7 @@ class _InfoChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(6),
       ),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
-        Icon(icon, size: 12, color: c),
+        AppIcon.fromIconData(icon, size: 12, color: c),
         const SizedBox(width: 4),
         Text(label, style: TextStyle(color: c, fontSize: 11)),
       ]),

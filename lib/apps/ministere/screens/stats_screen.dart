@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../../core/theme.dart';
+import '../../../widgets/app_icon.dart';
 import '../../../core/services/pesee_service.dart';
 import '../../../core/services/permis_service.dart';
 import '../../../models/permis_minier.dart';
@@ -272,8 +274,7 @@ class _StatsScreenState extends State<StatsScreen> {
                     border: Border.all(
                       color: SirexeTheme.danger.withOpacity(0.3))),
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
-                    const Icon(Icons.warning_amber_rounded,
-                      color: SirexeTheme.danger, size: 14),
+                    SizedBox(width: 14, height: 14, child: SvgPicture.asset('assets/images/icon_alert_dark.svg', width: 14, height: 14, color: SirexeTheme.danger)),
                     const SizedBox(width: 7),
                     Text(e.key, style: const TextStyle(
                       color: SirexeTheme.textSecondary, fontSize: 12)),
@@ -294,11 +295,11 @@ class _StatsScreenState extends State<StatsScreen> {
               color: SirexeTheme.surface,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: SirexeTheme.border)),
-            child: const Row(children: [
-              Icon(Icons.info_outline,
+            child: Row(children: [
+              AppIcon.fromIconData(Icons.info_outline,
                 color: SirexeTheme.textSecondary, size: 14),
-              SizedBox(width: 8),
-              Expanded(child: Text(
+              const SizedBox(width: 8),
+              const Expanded(child: Text(
                 'Taxes estimées à titre indicatif (3% du tonnage × prix marché).'
                 ' Données issues du registre cryptographique GEODEX.',
                 style: TextStyle(
@@ -348,14 +349,14 @@ class _KpiCard extends StatelessWidget {
       color: SirexeTheme.surface,
       borderRadius: BorderRadius.circular(10),
       border: Border.all(color: SirexeTheme.border)),
-    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(children: [
         Container(
           width: 30, height: 30,
           decoration: BoxDecoration(
             color: color.withOpacity(0.1),
             borderRadius: BorderRadius.circular(7)),
-          child: Icon(icon, color: color, size: 15)),
+          child: AppIcon.fromIconData(icon, color: color, size: 15)),
         const Spacer(),
       ]),
       const SizedBox(height: 12),

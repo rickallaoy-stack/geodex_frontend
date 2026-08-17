@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/services.dart';
 import '../../../core/theme.dart';
+import '../../../widgets/app_icon.dart';
 import '../../../core/services/verification_service.dart';
 
 class VerificationChainScreen extends StatefulWidget {
@@ -42,7 +44,7 @@ class _VerificationChainScreenState extends State<VerificationChainScreen> {
         backgroundColor: SirexeTheme.surface,
         title: const Text('Vérification chaîne', style: TextStyle(color: SirexeTheme.textPrimary, fontSize: 16, fontWeight: FontWeight.w600)),
         actions: [
-          IconButton(onPressed: _load, icon: const Icon(Icons.refresh, color: SirexeTheme.textSecondary)),
+          IconButton(onPressed: _load, icon: AppIcon.fromIconData(Icons.refresh, color: SirexeTheme.textSecondary, size: 18)),
         ],
       ),
       body: _loading
@@ -70,10 +72,17 @@ class _VerificationChainScreenState extends State<VerificationChainScreen> {
           border: Border(bottom: BorderSide(color: valid ? SirexeTheme.accent.withOpacity(0.3) : SirexeTheme.danger.withOpacity(0.3), width: 1)),
         ),
         child: Row(children: [
-          Container(width: 44, height: 44, decoration: BoxDecoration(
-            color: valid ? SirexeTheme.accent.withOpacity(0.12) : SirexeTheme.danger.withOpacity(0.12),
-            borderRadius: BorderRadius.circular(10),
-          ), child: Icon(valid ? Icons.verified_rounded : Icons.warning_amber_rounded, color: valid ? SirexeTheme.accent : SirexeTheme.danger, size: 24)),
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: valid ? SirexeTheme.accent.withOpacity(0.12) : SirexeTheme.danger.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: valid
+              ? AppIcon.fromIconData(Icons.verified_rounded, color: SirexeTheme.accent, size: 24)
+              : SizedBox(width: 24, height: 24, child: SvgPicture.asset('assets/images/icon_alert_dark.svg', width: 24, height: 24, color: SirexeTheme.danger)),
+          ),
           const SizedBox(width: 14),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(valid ? 'Chaîne intègre' : 'Chaîne compromise', style: TextStyle(color: valid ? SirexeTheme.accent : SirexeTheme.danger, fontSize: 16, fontWeight: FontWeight.w700)),
@@ -115,13 +124,13 @@ class _ErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-    const Icon(Icons.wifi_off_rounded, color: SirexeTheme.danger, size: 48),
+    AppIcon.fromIconData(Icons.wifi_off_rounded, color: SirexeTheme.danger, size: 48),
     const SizedBox(height: 16),
     Text('Impossible de joindre le backend', style: TextStyle(color: SirexeTheme.textPrimary, fontSize: 15, fontWeight: FontWeight.w600)),
     const SizedBox(height: 6),
     Text(error, style: TextStyle(color: SirexeTheme.textSecondary, fontSize: 12), textAlign: TextAlign.center),
     const SizedBox(height: 20),
-    TextButton.icon(onPressed: onRetry, icon: const Icon(Icons.refresh, color: SirexeTheme.accentBlue), label: const Text('Réessayer', style: TextStyle(color: SirexeTheme.accentBlue))),
+    TextButton.icon(onPressed: onRetry, icon: AppIcon.fromIconData(Icons.refresh, color: SirexeTheme.accentBlue), label: const Text('Réessayer', style: TextStyle(color: SirexeTheme.accentBlue))),
   ]));
 }
 
@@ -177,7 +186,9 @@ class _ChainCard extends StatelessWidget {
           Container(width: 28, height: 28, decoration: BoxDecoration(
             color: statusColor.withOpacity(0.12),
             borderRadius: BorderRadius.circular(6),
-          ), child: Icon(isValid ? Icons.check_circle_outline : Icons.warning_amber_rounded, color: statusColor, size: 16)),
+          ), child: isValid
+            ? AppIcon.fromIconData(Icons.check_circle_outline, color: statusColor, size: 16)
+            : SizedBox(width: 16, height: 16, child: SvgPicture.asset('assets/images/icon_alert_dark.svg', width: 16, height: 16, color: statusColor))),
           const SizedBox(width: 10),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(id, style: const TextStyle(color: SirexeTheme.textPrimary, fontSize: 13, fontWeight: FontWeight.w600)),
@@ -221,7 +232,7 @@ class _HashRow extends StatelessWidget {
           ),
           child: Row(children: [
             Expanded(child: Text(display, style: const TextStyle(color: SirexeTheme.textPrimary, fontSize: 11, fontFamily: 'monospace', letterSpacing: 0.3))),
-            if (value.isNotEmpty) Icon(Icons.copy, color: SirexeTheme.textSecondary, size: 13),
+            if (value.isNotEmpty) AppIcon.fromIconData(Icons.copy, color: SirexeTheme.textSecondary, size: 13),
           ]),
         ),
       )),

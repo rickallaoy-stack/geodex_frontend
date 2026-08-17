@@ -1,25 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../models/permis_minier.dart';
-
-// ─── Palette GEODEX (issue de core/theme.dart) ───────────────────────────────
-const _bg = Color(0xFF0E1117);
-const _surface = Color(0xFF161B22);
-const _surfaceElevated = Color(0xFF1C2230);
-const _border = Color(0xFF2A3244);
-const _textPrimary = Color(0xFFE6EDF3);
-const _textMuted = Color(0xFF7D8590);
-
-const _colorActif = Color(0xFF3FB950);
-const _colorIllegale = Color(0xFFFF4444);
-const _colorSuspendu = Color(0xFF4D8FD6);
-const _colorExpire = Color(0xFF8B949E);
-const _colorAlerte = Color(0xFFFF4444);
-
-// Couleurs ressource (dots)
-const _colorOr = Color(0xFFD4A843);
-const _colorNickel = Color(0xFF7BBFDE);
-const _colorManganese = Color(0xFFB87AE0);
-const _colorPetrole = Color(0xFF5BBBAD);
+import '../core/theme.dart';
 
 /// Sidebar principale de l'interface GEODEX.
 ///
@@ -74,7 +56,7 @@ class SidebarPanel extends StatelessWidget {
 
     return Container(
       width: 256,
-      color: _bg,
+      color: SirexeTheme.surface,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -82,27 +64,31 @@ class SidebarPanel extends StatelessWidget {
           _SectionHeader(label: 'COUCHES'),
           _CoucheToggle(
             label: 'Géologie BGS',
-            dotColor: const Color(0xFFF4C542),
+            dotColor: SirexeTheme.resourceGold,
             value: coucheGeologie,
             onChanged: (v) => onToggleCouche('geologie', v),
+            iconAsset: 'assets/images/icon_layer_dark.svg',
           ),
-          _CoucheToggle(
+            _CoucheToggle(
             label: 'Permis actifs',
-            dotColor: _colorActif,
+            dotColor: SirexeTheme.success,
             value: couchePermis,
             onChanged: (v) => onToggleCouche('permis', v),
+            iconAsset: 'assets/images/icon_pin_dark.svg',
           ),
-          _CoucheToggle(
+            _CoucheToggle(
             label: 'Sites illégaux',
-            dotColor: _colorIllegale,
+            dotColor: SirexeTheme.danger,
             value: coucheSitesIllegaux,
             onChanged: (v) => onToggleCouche('illegaux', v),
+            iconAsset: 'assets/images/icon_alert_dark.svg',
           ),
-          _CoucheToggle(
+            _CoucheToggle(
             label: 'Geofences actifs',
-            dotColor: const Color(0xFF4D8FD6),
+            dotColor: SirexeTheme.accentBlue,
             value: coucheGeofences,
             onChanged: (v) => onToggleCouche('geofences', v),
+            iconAsset: 'assets/images/icon_layer_dark.svg',
           ),
 
           _Divider(),
@@ -117,31 +103,31 @@ class SidebarPanel extends StatelessWidget {
               children: [
                 _FiltreChip(
                   label: 'Tout',
-                  color: _textMuted,
+                  color: SirexeTheme.textSecondary,
                   actif: filtreRessource == null,
                   onTap: () => onFiltreRessource(null),
                 ),
                 _FiltreChip(
                   label: 'Or',
-                  color: _colorOr,
+                  color: SirexeTheme.resourceGold,
                   actif: filtreRessource == 'Or',
                   onTap: () => onFiltreRessource('Or'),
                 ),
                 _FiltreChip(
                   label: 'Nickel',
-                  color: _colorNickel,
+                  color: SirexeTheme.resourceNickel,
                   actif: filtreRessource == 'Nickel',
                   onTap: () => onFiltreRessource('Nickel'),
                 ),
                 _FiltreChip(
                   label: 'Manganèse',
-                  color: _colorManganese,
+                  color: SirexeTheme.resourceManganese,
                   actif: filtreRessource == 'Manganèse',
                   onTap: () => onFiltreRessource('Manganèse'),
                 ),
                 _FiltreChip(
                   label: 'Pétrole',
-                  color: _colorPetrole,
+                  color: SirexeTheme.resourceOil,
                   actif: filtreRessource == 'Pétrole',
                   onTap: () => onFiltreRessource('Pétrole'),
                 ),
@@ -159,7 +145,7 @@ class SidebarPanel extends StatelessWidget {
                 ? Center(
                     child: Text(
                       'Aucun permis pour ce filtre',
-                      style: TextStyle(color: _textMuted, fontSize: 12),
+                      style: TextStyle(color: SirexeTheme.textSecondary, fontSize: 12),
                       textAlign: TextAlign.center,
                     ),
                   )
@@ -195,8 +181,8 @@ class _SectionHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(12, 14, 12, 6),
       child: Text(
         label,
-        style: const TextStyle(
-          color: _textMuted,
+        style: TextStyle(
+          color: SirexeTheme.textSecondary,
           fontSize: 10,
           fontWeight: FontWeight.w600,
           letterSpacing: 1.2,
@@ -212,7 +198,7 @@ class _Divider extends StatelessWidget {
     return Container(
       height: 1,
       margin: const EdgeInsets.symmetric(vertical: 4),
-      color: _border,
+      color: SirexeTheme.border,
     );
   }
 }
@@ -223,33 +209,40 @@ class _CoucheToggle extends StatelessWidget {
     required this.dotColor,
     required this.value,
     required this.onChanged,
+    this.iconAsset,
   });
 
   final String label;
   final Color dotColor;
   final bool value;
   final ValueChanged<bool> onChanged;
+  final String? iconAsset;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-      child: Row(
+            child: Row(
         children: [
-          Container(
-            width: 10,
-            height: 10,
-            decoration: BoxDecoration(
-              color: value ? dotColor : _textMuted.withOpacity(0.3),
-              shape: BoxShape.circle,
+          if (iconAsset != null) ...[
+            SvgPicture.asset(iconAsset!, width: 18, height: 18),
+            const SizedBox(width: 8),
+          ] else ...[
+            Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(
+                color: value ? dotColor : SirexeTheme.textSecondary.withOpacity(0.3),
+                shape: BoxShape.circle,
+              ),
             ),
-          ),
-          const SizedBox(width: 8),
+            const SizedBox(width: 8),
+          ],
           Expanded(
             child: Text(
               label,
               style: TextStyle(
-                color: value ? _textPrimary : _textMuted,
+                color: value ? SirexeTheme.textPrimary : SirexeTheme.textSecondary,
                 fontSize: 13,
               ),
             ),
@@ -259,8 +252,8 @@ class _CoucheToggle extends StatelessWidget {
             onChanged: onChanged,
             activeThumbColor: dotColor,
             activeTrackColor: dotColor.withOpacity(0.3),
-            inactiveThumbColor: _textMuted,
-            inactiveTrackColor: _border,
+            inactiveThumbColor: SirexeTheme.textSecondary,
+            inactiveTrackColor: SirexeTheme.border,
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
           ),
@@ -291,9 +284,9 @@ class _FiltreChip extends StatelessWidget {
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
-          color: actif ? color.withOpacity(0.18) : _surfaceElevated,
+          color: actif ? color.withOpacity(0.18) : SirexeTheme.surfaceElevated,
           border: Border.all(
-            color: actif ? color : _border,
+            color: actif ? color : SirexeTheme.border,
             width: 1,
           ),
           borderRadius: BorderRadius.circular(6),
@@ -301,7 +294,7 @@ class _FiltreChip extends StatelessWidget {
         child: Text(
           label,
           style: TextStyle(
-            color: actif ? color : _textMuted,
+            color: actif ? color : SirexeTheme.textSecondary,
             fontSize: 12,
             fontWeight: actif ? FontWeight.w600 : FontWeight.w400,
           ),
@@ -336,13 +329,13 @@ class _PermisCard extends StatelessWidget {
         margin: const EdgeInsets.fromLTRB(8, 3, 8, 3),
         padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
         decoration: BoxDecoration(
-          color: selected ? _surfaceElevated : _surface,
+          color: selected ? SirexeTheme.surfaceElevated : SirexeTheme.surface,
           border: Border.all(
             color: selected
                 ? badgeColor.withOpacity(0.6)
                 : isIllegale
-                    ? _colorIllegale.withOpacity(0.4)
-                    : _border,
+                    ? SirexeTheme.danger.withOpacity(0.4)
+                    : SirexeTheme.border,
             width: isIllegale || selected ? 1.5 : 1,
           ),
           borderRadius: BorderRadius.circular(8),
@@ -358,8 +351,8 @@ class _PermisCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     permis.nom,
-                    style: const TextStyle(
-                      color: _textPrimary,
+                    style: TextStyle(
+                      color: SirexeTheme.textPrimary,
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
                     ),
@@ -377,14 +370,14 @@ class _PermisCard extends StatelessWidget {
                 Text(
                   '${permis.societe} · ${permis.ressource}',
                   style:
-                      const TextStyle(color: _textMuted, fontSize: 11),
+                      TextStyle(color: SirexeTheme.textSecondary, fontSize: 11),
                   overflow: TextOverflow.ellipsis,
                 ),
                 const Spacer(),
                  Text(
                   '${_formatSuperficie(permis.superficieHa)} ha',
                   style:
-                      const TextStyle(color: _textMuted, fontSize: 11),
+                      TextStyle(color: SirexeTheme.textSecondary, fontSize: 11),
                 ),
               ],
             ),
@@ -393,14 +386,13 @@ class _PermisCard extends StatelessWidget {
             if (isIllegale) ...[
               const SizedBox(height: 5),
               Row(
-                children: const [
-                  Icon(Icons.warning_rounded,
-                      color: _colorAlerte, size: 12),
-                  SizedBox(width: 4),
+                children: [
+                      SizedBox(width: 12, height: 12, child: SvgPicture.asset('assets/images/icon_alert_dark.svg')),
+                  const SizedBox(width: 4),
                   Text(
                     'Hors permis · Alerte active',
                     style: TextStyle(
-                        color: _colorAlerte,
+                        color: SirexeTheme.danger,
                         fontSize: 11,
                         fontWeight: FontWeight.w500),
                   ),
@@ -416,15 +408,15 @@ class _PermisCard extends StatelessWidget {
   Color _badgeColor(StatutPermis s) {
     switch (s) {
       case StatutPermis.valide:
-        return _colorActif;
+        return SirexeTheme.success;
       case StatutPermis.illegal:
-        return _colorIllegale;
+        return SirexeTheme.danger;
       case StatutPermis.suspendu:
-        return _colorSuspendu;
+        return SirexeTheme.accentBlue;
       case StatutPermis.revoque:
-        return _colorExpire;
+        return SirexeTheme.textSecondary;
       case StatutPermis.enAttente:
-        return _colorExpire;
+        return SirexeTheme.textSecondary;
     }
   }
 

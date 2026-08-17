@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../core/config/app_dependencies.dart';
+import '../../widgets/app_icon.dart';
 import '../../core/network/api_exception.dart';
 import '../../models/geojson.dart';
 
@@ -86,10 +88,10 @@ class _GeoMapScreenState extends State<GeoMapScreen> {
             point: point,
             width: 36,
             height: 36,
-            child: const Icon(
-              Icons.location_on,
-              color: Colors.red,
-              size: 28,
+            child: SvgPicture.asset(
+              'assets/images/icon_pin_dark.svg',
+              width: 28,
+              height: 28,
             ),
           );
         })
@@ -107,7 +109,7 @@ class _GeoMapScreenState extends State<GeoMapScreen> {
             padding: const EdgeInsets.all(12),
             child: ElevatedButton.icon(
               onPressed: _loadGeology,
-              icon: const Icon(Icons.refresh),
+              icon: AppIcon.fromIconData(Icons.refresh, size: 18),
               label: const Text('Recharger la couche géologique'),
             ),
           ),
@@ -129,7 +131,7 @@ class _GeoMapScreenState extends State<GeoMapScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.error_outline, size: 56, color: Colors.redAccent),
+                SvgPicture.asset('assets/images/icon_alert_dark.svg', width: 56, height: 56),
                 const SizedBox(height: 12),
                 Text(
                   _errorMessage ?? 'Erreur inconnue',
@@ -171,13 +173,13 @@ class _GeoMapScreenState extends State<GeoMapScreen> {
               bottom: 24,
               child: Column(
                 children: [
-                  _ZoomButton(
-                    icon: Icons.add,
-                    onTap: () {
-                      final current = _mapController.camera.zoom;
-                      _mapController.move(_mapController.camera.center, current + 1);
-                    },
-                  ),
+                          _ZoomButton(
+                            icon: Icons.add,
+                            onTap: () {
+                              final current = _mapController.camera.zoom;
+                              _mapController.move(_mapController.camera.center, current + 1);
+                            },
+                          ),
                   const SizedBox(height: 8),
                   _ZoomButton(
                     icon: Icons.remove,
@@ -209,9 +211,9 @@ class _ZoomButton extends StatelessWidget {
         onTap: onTap,
         customBorder: const CircleBorder(),
         child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Icon(icon, color: Colors.black87),
-        ),
+              padding: const EdgeInsets.all(12),
+              child: AppIcon.fromIconData(icon, color: Colors.black87, size: 18),
+            ),
       ),
     );
   }

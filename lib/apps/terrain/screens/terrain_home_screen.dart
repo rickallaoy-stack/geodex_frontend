@@ -1,10 +1,12 @@
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../../../core/theme.dart';
+import '../../../widgets/app_icon.dart';
 import '../../../core/local/sync_queue.dart';
 import '../../../models/pesee.dart';
 import '../../../models/permis_minier.dart';
@@ -299,13 +301,13 @@ class _TerrainHomeScreenState extends State<TerrainHomeScreen> {
                   ? SirexeTheme.accent.withOpacity(0.4)
                   : SirexeTheme.danger.withOpacity(0.4))),
             child: Row(children: [
-              Icon(
-                _dansZoneAutorisee
-                  ? Icons.check_circle_outline
-                  : Icons.warning_amber_rounded,
-                color: _dansZoneAutorisee
-                  ? SirexeTheme.accent : SirexeTheme.danger,
-                size: 16),
+              _dansZoneAutorisee
+                ? AppIcon.fromIconData(Icons.check_circle_outline,
+                    size: 16, color: SirexeTheme.accent)
+                : SizedBox(width: 16, height: 16,
+                    child: SvgPicture.asset(
+                      'assets/images/icon_alert_dark.svg',
+                      width: 16, height: 16, color: SirexeTheme.danger)),
               const SizedBox(width: 10),
               Expanded(child: Text(
                 _dansZoneAutorisee
@@ -340,15 +342,13 @@ class _TerrainHomeScreenState extends State<TerrainHomeScreen> {
               ),
             ),
             child: Row(children: [
-              Icon(
-                cas.severity == 'danger'
-                    ? Icons.warning_amber_rounded
-                    : Icons.info_outlined,
-                color: cas.severity == 'danger'
-                    ? SirexeTheme.danger
-                    : SirexeTheme.warning,
-                size: 18,
-              ),
+              cas.severity == 'danger'
+                ? SizedBox(width: 18, height: 18,
+                    child: SvgPicture.asset(
+                      'assets/images/icon_alert_dark.svg',
+                      width: 18, height: 18, color: SirexeTheme.danger))
+                : AppIcon.fromIconData(Icons.info_outlined,
+                  color: SirexeTheme.warning, size: 18),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
@@ -427,16 +427,26 @@ class _TerrainHomeScreenState extends State<TerrainHomeScreen> {
               Marker(
                 point: LatLng(
                   _positionActive!.latitude,
-                  _positionActive!.longitude),
-                width: 40, height: 40,
+                  _positionActive!.longitude,
+                ),
+                width: 40,
+                height: 40,
                 child: Container(
                   decoration: BoxDecoration(
                     color: SirexeTheme.accentBlue.withOpacity(0.2),
                     shape: BoxShape.circle,
-                    border: Border.all(
-                      color: SirexeTheme.accentBlue, width: 2)),
-                  child: const Icon(Icons.person_pin_circle,
-                    color: SirexeTheme.accentBlue, size: 20)),
+                    border: Border.all(color: SirexeTheme.accentBlue, width: 2),
+                  ),
+                  child: SizedBox(
+                    width: 40,
+                    height: 40,
+                    child: SvgPicture.asset(
+                      'assets/images/icon_user_dark.svg',
+                      width: 20,
+                      height: 20,
+                    ),
+                  ),
+                ),
               ),
             ]),
         ],
@@ -451,7 +461,7 @@ class _TerrainHomeScreenState extends State<TerrainHomeScreen> {
               color: _positionSimulee != null
                 ? SirexeTheme.warning : SirexeTheme.border)),
           child: Row(mainAxisSize: MainAxisSize.min, children: [
-            Icon(Icons.science_outlined,
+            AppIcon.fromIconData(Icons.science_outlined,
               color: _positionSimulee != null
                 ? SirexeTheme.warning : SirexeTheme.textSecondary,
               size: 13),
@@ -512,13 +522,13 @@ class _TerrainHomeScreenState extends State<TerrainHomeScreen> {
                 width: 1.5),
             ),
             child: Row(mainAxisSize: MainAxisSize.min, children: [
-              Icon(
+              AppIcon.fromIconData(
                 _dansZoneAutorisee
                   ? Icons.verified_outlined
                   : Icons.block_outlined,
+                size: 14,
                 color: _dansZoneAutorisee
-                  ? SirexeTheme.accent : SirexeTheme.danger,
-                size: 14),
+                  ? SirexeTheme.accent : SirexeTheme.danger),
               const SizedBox(width: 6),
               Text(
                 _dansZoneAutorisee
@@ -541,7 +551,7 @@ class _TerrainHomeScreenState extends State<TerrainHomeScreen> {
               borderRadius: BorderRadius.circular(7),
               border: Border.all(color: SirexeTheme.border)),
             child: Row(mainAxisSize: MainAxisSize.min, children: [
-              Icon(Icons.gps_fixed,
+              AppIcon.fromIconData(Icons.gps_fixed,
                 color: _positionSimulee != null
                   ? SirexeTheme.warning : SirexeTheme.accentBlue,
                 size: 12),
@@ -595,7 +605,7 @@ class _TerrainHomeScreenState extends State<TerrainHomeScreen> {
                 BoxShadow(color: Colors.black.withOpacity(0.3),
                   blurRadius: 8)
               ]),
-            child: const Icon(Icons.my_location,
+            child: AppIcon.fromIconData(Icons.my_location,
               color: SirexeTheme.accentBlue, size: 18)),
         ),
       ),
@@ -660,7 +670,7 @@ class _Topbar extends StatelessWidget {
               borderRadius: BorderRadius.circular(6),
               border: Border.all(color: SirexeTheme.warning.withOpacity(0.4))),
             child: Row(mainAxisSize: MainAxisSize.min, children: [
-              const Icon(Icons.cloud_upload_outlined,
+              AppIcon.fromIconData(Icons.cloud_upload_outlined,
                 color: SirexeTheme.warning, size: 13),
               const SizedBox(width: 5),
               Text('$enAttente en attente · Sync',
@@ -670,11 +680,11 @@ class _Topbar extends StatelessWidget {
           ),
         )
       else
-        const Row(mainAxisSize: MainAxisSize.min, children: [
-          Icon(Icons.cloud_done_outlined,
+          Row(mainAxisSize: MainAxisSize.min, children: [
+          AppIcon.fromIconData(Icons.cloud_done_outlined,
             color: SirexeTheme.accent, size: 13),
-          SizedBox(width: 5),
-          Text('Synchronisé', style: TextStyle(
+          const SizedBox(width: 5),
+          const Text('Synchronisé', style: TextStyle(
             color: SirexeTheme.accent, fontSize: 11)),
         ]),
     ]),
@@ -712,10 +722,9 @@ class _GpsCard extends StatelessWidget {
               padding: EdgeInsets.all(10),
               child: CircularProgressIndicator(
                 strokeWidth: 2, color: SirexeTheme.accentBlue))
-          : Icon(
+            : AppIcon.fromIconData(
               ok ? Icons.gps_fixed : Icons.gps_off,
-              color: ok ? SirexeTheme.accent : SirexeTheme.danger,
-              size: 18)),
+              size: 18, color: ok ? SirexeTheme.accent : SirexeTheme.danger)),
       const SizedBox(width: 12),
       Expanded(child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -740,7 +749,7 @@ class _GpsCard extends StatelessWidget {
       if (!loading && !ok)
         GestureDetector(
           onTap: onRetry,
-          child: const Icon(Icons.refresh,
+          child: AppIcon.fromIconData(Icons.refresh,
             color: SirexeTheme.textSecondary, size: 18)),
     ]),
   );
@@ -783,10 +792,10 @@ class _FormCard extends StatelessWidget {
           label: 'Tare (kg)', ctrl: tapeCtrl,
           hint: '18.5', icon: Icons.remove_circle_outline, numeric: true)),
       ]),
-      if (erreur != null) ...[
+        if (erreur != null) ...[
         const SizedBox(height: 10),
         Row(children: [
-          const Icon(Icons.error_outline,
+          AppIcon.fromIconData(Icons.error_outline,
             color: SirexeTheme.danger, size: 13),
           const SizedBox(width: 6),
           Expanded(child: Text(erreur!, style: const TextStyle(
@@ -810,12 +819,12 @@ class _FormCard extends StatelessWidget {
               ? const SizedBox(width: 18, height: 18,
                   child: CircularProgressIndicator(
                     strokeWidth: 2, color: Colors.white))
-              : const Row(
+              : Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.scale, color: Colors.white, size: 16),
-                    SizedBox(width: 8),
-                    Text('Enregistrer la pesée',
+                    AppIcon.fromIconData(Icons.scale, color: Colors.white, size: 16),
+                    const SizedBox(width: 8),
+                    const Text('Enregistrer la pesée',
                       style: TextStyle(color: Colors.white,
                         fontSize: 14, fontWeight: FontWeight.w700)),
                   ])),
@@ -853,7 +862,7 @@ class _TerrainField extends StatelessWidget {
           hintText: hint,
           hintStyle: const TextStyle(
             color: SirexeTheme.textSecondary, fontSize: 12),
-          prefixIcon: Icon(icon,
+          prefixIcon: AppIcon.fromIconData(icon,
             color: SirexeTheme.textSecondary, size: 15),
           filled: true,
           fillColor: SirexeTheme.surfaceElevated,
@@ -888,11 +897,11 @@ class _ResultCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(10),
       border: Border.all(color: SirexeTheme.accent.withOpacity(0.35))),
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      const Row(children: [
-        Icon(Icons.check_circle_outline,
+      Row(children: [
+        AppIcon.fromIconData(Icons.check_circle_outline,
           color: SirexeTheme.accent, size: 16),
-        SizedBox(width: 8),
-        Text('Pesée enregistrée localement',
+        const SizedBox(width: 8),
+        const Text('Pesée enregistrée localement',
           style: TextStyle(color: SirexeTheme.accent,
             fontSize: 13, fontWeight: FontWeight.w600)),
       ]),
@@ -920,11 +929,11 @@ class _ResultCard extends StatelessWidget {
             letterSpacing: 0.5)),
       ),
       const SizedBox(height: 8),
-      const Row(children: [
-        Icon(Icons.cloud_upload_outlined,
+      Row(children: [
+        AppIcon.fromIconData(Icons.cloud_upload_outlined,
           color: SirexeTheme.warning, size: 12),
-        SizedBox(width: 5),
-        Text('En attente de synchronisation',
+        const SizedBox(width: 5),
+        const Text('En attente de synchronisation',
           style: TextStyle(color: SirexeTheme.warning, fontSize: 11)),
       ]),
     ]),
@@ -981,7 +990,7 @@ class _TerrainTab extends StatelessWidget {
           color: active ? SirexeTheme.accent : Colors.transparent,
           width: 2))),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
-        Icon(icon, size: 14,
+        AppIcon.fromIconData(icon, size: 14,
           color: active
             ? SirexeTheme.accent : SirexeTheme.textSecondary),
         const SizedBox(width: 6),

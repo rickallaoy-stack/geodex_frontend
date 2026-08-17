@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../../../core/theme.dart';
+import '../../../widgets/app_icon.dart';
 import '../../../models/permis_minier.dart';
 import '../../../models/alerte_model.dart';
 import '../../../core/services/permis_service.dart';
@@ -307,15 +309,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ),
               child: Row(children: [
-                Icon(
-                  cas.severity == 'danger'
-                      ? Icons.warning_amber_rounded
-                      : Icons.info_outlined,
-                  color: cas.severity == 'danger'
-                      ? SirexeTheme.danger
-                      : SirexeTheme.warning,
-                  size: 20,
-                ),
+                cas.severity == 'danger'
+                  ? SizedBox(width: 20, height: 20,
+                      child: SvgPicture.asset('assets/images/icon_alert_dark.svg', width: 20, height: 20, color: SirexeTheme.danger))
+                  : AppIcon.fromIconData(Icons.info_outlined, color: SirexeTheme.warning, size: 20),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
@@ -392,8 +389,8 @@ class _AlerteToastState extends State<_AlerteToast> with SingleTickerProviderSta
                   color: SirexeTheme.danger.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.warning_amber_rounded,
-                    color: SirexeTheme.danger, size: 20),
+                child: SizedBox(width: 36, height: 36,
+                  child: SvgPicture.asset('assets/images/icon_alert_dark.svg', width: 20, height: 20, color: SirexeTheme.danger)),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -421,7 +418,7 @@ class _AlerteToastState extends State<_AlerteToast> with SingleTickerProviderSta
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.close,
+                icon: AppIcon.fromIconData(Icons.close,
                     color: SirexeTheme.textSecondary, size: 16),
                 onPressed: widget.onDismiss,
                 padding: EdgeInsets.zero,
@@ -459,7 +456,7 @@ class _Tab extends StatelessWidget {
   const _Tab({required this.label, required this.icon, required this.active, required this.onTap, this.badge = 0});
   @override
   Widget build(BuildContext context) => GestureDetector(onTap: onTap, child: Container(padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10), decoration: BoxDecoration(border: Border(bottom: BorderSide(color: active ? SirexeTheme.accentBlue : Colors.transparent, width: 2))), child: Row(mainAxisSize: MainAxisSize.min, children: [
-    Icon(icon, size: 15, color: active ? SirexeTheme.accentBlue : SirexeTheme.textSecondary),
+    AppIcon.fromIconData(icon, size: 15, color: active ? SirexeTheme.accentBlue : SirexeTheme.textSecondary),
     const SizedBox(width: 7),
     Text(label, style: TextStyle(color: active ? SirexeTheme.accentBlue : SirexeTheme.textSecondary, fontSize: 13, fontWeight: active ? FontWeight.w600 : FontWeight.normal)),
     if (badge > 0) ...[const SizedBox(width: 6), Container(padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1), decoration: BoxDecoration(color: SirexeTheme.danger, borderRadius: BorderRadius.circular(10)), child: Text(badge > 99 ? '99+' : '$badge', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)))],

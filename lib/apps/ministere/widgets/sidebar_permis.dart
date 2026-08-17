@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme.dart';
+import '../../../widgets/app_icon.dart';
 import '../../../models/permis_minier.dart';
 
 class SidebarPermis extends StatefulWidget {
@@ -80,13 +81,13 @@ class _SidebarPermisState extends State<SidebarPermis> {
                 border: Border.all(
                   color: SirexeTheme.danger.withOpacity(0.4)),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.play_circle_outline,
+                  AppIcon.fromIconData(Icons.play_circle_outline,
                     color: SirexeTheme.danger, size: 14),
-                  SizedBox(width: 6),
-                  Text('Simuler alerte fraude',
+                  const SizedBox(width: 6),
+                  const Text('Simuler alerte fraude',
                     style: TextStyle(color: SirexeTheme.danger,
                       fontSize: 12, fontWeight: FontWeight.w500)),
                 ],

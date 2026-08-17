@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme.dart';
+import '../../../widgets/app_icon.dart';
 import '../../../models/terrain_modules.dart';
 
 class ClassificationScreen extends StatefulWidget {
@@ -46,7 +47,7 @@ class _ClassificationScreenState extends State<ClassificationScreen> {
           setState(() => _photos.add(_PhotoEntry(bytes: [], resultat: null)));
         },
         backgroundColor: SirexeTheme.accent,
-        icon: const Icon(Icons.add_a_photo_outlined, color: Colors.white),
+        icon: AppIcon.fromIconData(Icons.add_a_photo_outlined, color: Colors.white, size: 18),
         label: const Text('Ajouter photo', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
       ),
     );
@@ -90,7 +91,7 @@ class _PhotoCard extends StatelessWidget {
               color: SirexeTheme.surfaceElevated,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(Icons.image_outlined, color: SirexeTheme.textSecondary, size: 24),
+            child: AppIcon.fromIconData(Icons.image_outlined, color: SirexeTheme.textSecondary, size: 24),
           ),
           const SizedBox(width: 12),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -101,11 +102,11 @@ class _PhotoCard extends StatelessWidget {
           if (result == null)
             TextButton.icon(
               onPressed: onClassify,
-              icon: const Icon(Icons.auto_fix_high_outlined, color: SirexeTheme.accentBlue, size: 16),
+              icon: AppIcon.fromIconData(Icons.auto_fix_high_outlined, color: SirexeTheme.accentBlue, size: 16),
               label: const Text('Classer', style: TextStyle(color: SirexeTheme.accentBlue, fontSize: 12)),
             )
           else
-            Icon(Icons.check_circle_outline, color: SirexeTheme.accent, size: 18),
+            AppIcon.fromIconData(Icons.check_circle_outline, color: SirexeTheme.accent, size: 18),
         ]),
       ]),
     );
