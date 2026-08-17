@@ -12,6 +12,7 @@ import '../../../core/local/sync_queue.dart';
 import '../../../models/pesee.dart';
 import '../../../models/permis_minier.dart';
 import '../../../core/services/permis_service.dart';
+import '../../../core/services/pesee_service.dart';
 import '../../../core/services/geofence_alert.dart';
 
 class TerrainHomeScreen extends StatefulWidget {
@@ -241,7 +242,14 @@ class _TerrainHomeScreenState extends State<TerrainHomeScreen> {
 
     bool envoye = false;
     try {
-      envoye = false;
+      final result = await PeseeService.envoyerPesee(
+        capteurId:           capteurId,
+        poidsMesureKg:       poidsBrut,
+        latitude:            _positionActive!.latitude,
+        longitude:           _positionActive!.longitude,
+        signatureEquipement: signature,
+      );
+      envoye = result['success'] == true;
     } catch (_) {}
 
     if (!envoye) {

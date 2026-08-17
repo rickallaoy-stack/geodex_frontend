@@ -47,7 +47,7 @@ class PeseeService {
       final client = ApiClient();
       final res = await client.get('/api/pesees/verify-chain');
       return {
-        'integre':  res['chaine_integre'] as bool,
+        'integre':  res['integre'] as bool,
         'message':  res['message'] as String,
       };
     } catch (e) {
