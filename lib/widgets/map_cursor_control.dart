@@ -9,6 +9,7 @@ class MapCursorControl extends StatefulWidget {
   final double initialZoom;
   final VoidCallback? onRecenter;
   final Color? color;
+  final ValueChanged<LatLng>? onCursorMove;
 
   const MapCursorControl({
     super.key,
@@ -16,6 +17,7 @@ class MapCursorControl extends StatefulWidget {
     this.initialZoom = 13,
     this.onRecenter,
     this.color,
+    this.onCursorMove,
   });
 
   @override
@@ -26,7 +28,6 @@ class _MapCursorControlState extends State<MapCursorControl> {
   double _zoom = 13;
   bool _dragging = false;
   Offset? _dragStart;
-  LatLng? _centerStart;
 
   static const double _maxDrag = 40;
 
@@ -45,12 +46,11 @@ class _MapCursorControlState extends State<MapCursorControl> {
 
   void _handlePanStart(DragStartDetails details) {
     _dragStart = details.localPosition;
-    _centerStart = widget.mapController.camera.center;
     setState(() => _dragging = true);
   }
 
   void _handlePanUpdate(DragUpdateDetails details) {
-    if (_dragStart == null || _centerStart == null) return;
+    if (_dragStart == null) return;
 
     final delta = details.localPosition - _dragStart!;
     final clamped = _clamp(delta);
@@ -68,12 +68,12 @@ class _MapCursorControlState extends State<MapCursorControl> {
     );
 
     widget.mapController.move(newCenter, _zoom);
+    widget.onCursorMove?.call(newCenter);
   }
 
   void _handlePanEnd(DragEndDetails details) {
     setState(() => _dragging = false);
     _dragStart = null;
-    _centerStart = null;
   }
 
   void _zoomIn() {

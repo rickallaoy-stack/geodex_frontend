@@ -623,9 +623,28 @@ class _TerrainHomeScreenState extends State<TerrainHomeScreen> {
         mapController: _terrainMapController,
         initialZoom: _positionActive != null ? 10.0 : 6.2,
         onRecenter: _recenterMap,
+        onCursorMove: (pos) {
+          setState(() {
+            _positionSimulee = _positionFromLatLng(pos);
+          });
+          _verifierZone();
+        },
       ),
     ]);
   }
+
+  Position _positionFromLatLng(LatLng pos) => Position(
+    latitude: pos.latitude,
+    longitude: pos.longitude,
+    accuracy: 5.0,
+    altitude: 200.0,
+    altitudeAccuracy: 5.0,
+    heading: 0.0,
+    headingAccuracy: 0.0,
+    speed: 0.0,
+    speedAccuracy: 0.0,
+    timestamp: DateTime.now(),
+  );
 
   Position _fakePosition(double lat, double lng) => Position(
     latitude:         lat,
