@@ -7,6 +7,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../../../core/theme.dart';
 import '../../../widgets/app_icon.dart';
+import '../../../widgets/map_cursor_control.dart';
 import '../../../core/local/sync_queue.dart';
 import '../../../models/pesee.dart';
 import '../../../models/permis_minier.dart';
@@ -91,6 +92,15 @@ class _TerrainHomeScreenState extends State<TerrainHomeScreen> {
       }
     }
     setState(() => _dansZoneAutorisee = dansZone);
+  }
+
+  void _recenterMap() {
+    if (_positionActive != null) {
+      _terrainMapController.move(
+        LatLng(_positionActive!.latitude, _positionActive!.longitude),
+        12.0,
+      );
+    }
   }
 
   Future<void> _refreshQueue() async {
@@ -608,6 +618,11 @@ class _TerrainHomeScreenState extends State<TerrainHomeScreen> {
             child: AppIcon.fromIconData(Icons.my_location,
               color: SirexeTheme.accentBlue, size: 18)),
         ),
+      ),
+      MapCursorControl(
+        mapController: _terrainMapController,
+        initialZoom: _positionActive != null ? 10.0 : 6.2,
+        onRecenter: _recenterMap,
       ),
     ]);
   }

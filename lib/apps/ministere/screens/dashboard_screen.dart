@@ -7,6 +7,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../../../core/theme.dart';
 import '../../../widgets/app_icon.dart';
+import '../../../widgets/map_cursor_control.dart';
 import '../../../models/permis_minier.dart';
 import '../../../models/alerte_model.dart';
 import '../../../core/services/permis_service.dart';
@@ -74,6 +75,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _loadPermis() async {
     final permis = await PermisService.fetchPermis();
     if (mounted) setState(() => _permis = permis);
+  }
+
+  void _recenterMap() {
+    if (_permis.isEmpty) {
+      _mapController.move(const LatLng(7.5, -5.5), 6.2);
+      return;
+    }
+    double lat = 0, lng = 0;
+    for (final p in _permis) {
+      lat += p.centre.latitude;
+      lng += p.centre.longitude;
+    }
+    final center = LatLng(lat / _permis.length, lng / _permis.length);
+    _mapController.move(center, 6.2);
   }
 
   void _startAlertesWatch() {
@@ -283,6 +298,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ],
             ),
             Positioned(left: 14, bottom: 16, child: _GeoLegend(visible: _showGeology)),
+            MapCursorControl(
+              mapController: _mapController,
+              initialZoom: 6.2,
+              onRecenter: _recenterMap,
+            ),
           ]),
         ),
         if (_selected != null) ...[
