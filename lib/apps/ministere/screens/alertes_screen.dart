@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../core/theme.dart';
@@ -16,11 +17,19 @@ class _AlertesScreenState extends State<AlertesScreen> {
   bool _integre = true;
   String _integreMsg = '';
   bool _verifying = false;
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
     _load();
+    _timer = Timer.periodic(const Duration(seconds: 10), (_) => _load());
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   Future<void> _load() async {
