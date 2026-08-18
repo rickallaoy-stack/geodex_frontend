@@ -6,6 +6,7 @@ import '../../../core/theme.dart';
 import '../../../widgets/app_icon.dart';
 import '../../../models/pesee.dart';
 import '../../../models/permis_minier.dart';
+import '../../../core/services/pesee_service.dart';
 
 class PeseesScreen extends StatefulWidget {
   const PeseesScreen({super.key});
@@ -28,13 +29,63 @@ class _PeseesScreenState extends State<PeseesScreen> {
     setState(() => _simulating = true);
     await Future.delayed(const Duration(milliseconds: 1200));
 
-    final rng       = Random();
-    final permis    = permisDemo[rng.nextInt(permisDemo.length)];
-    final now       = DateTime.now();
-    final poidsNet  = 40.0 + rng.nextDouble() * 20;
-    final tare      = 17.5 + rng.nextDouble() * 2;
+    final rng    = Random();
+    final permis = permisDemo[rng.nextInt(permisDemo.length)];
+    final now    = DateTime.now();
+    final poidsNet = 40.0 + rng.nextDouble() * 20;
+    final tare   = 17.5 + rng.nextDouble() * 2;
     final camionNum = rng.nextInt(20).toString().padLeft(2, '0');
-    final prefix    = permis.nom.split(' ').last.substring(0, 2).toUpperCase();
+    final prefix = permis.nom.split(' ').last.substring(0, 2).toUpperCase();
+
+    final latitude = permis.centre.latitude + (rng.nextDouble() - 0.5) * 0.001;
+    final longitude = permis.centre.longitude + (rng.nextDouble() - 0.5) * 0.001;
+
+    final signature = 'SECURE_HARDWARE_SIGN_METER_${rng.nextInt(5) + 1}';
+
+    try {
+      final res = await PeseeService.envoyerPesee(
+        capteurId: 'SENSOR-${permis.id.split('-').last}',
+        poidsMesureKg: poidsNet + tare,
+        latitude: latitude,
+        longitude: longitude,
+        signatureEquipement: signature,
+      );
+
+      if (res['success'] == true) {
+        final hash = res['hash'] ?? Pesee.genererHash(
+          permisId: permis.id,
+          camionId: 'CAM-$prefix-$camionNum',
+          poidsNet: poidsNet,
+          timestamp: now,
+          latitude: latitude,
+          longitude: longitude,
+        );
+
+        final nouvelle = Pesee(
+          id:        res['releve_id'] ?? 'PSE-${(_pesees.length + 1).toString().padLeft(3, '0')}',
+          camionId:  'CAM-$prefix-$camionNum',
+          permisId:  permis.id,
+          nomSite:   permis.nom,
+          poidsNet:  double.parse(poidsNet.toStringAsFixed(1)),
+          poidsBrut: double.parse((poidsNet + tare).toStringAsFixed(1)),
+          tare:      double.parse(tare.toStringAsFixed(1)),
+          timestamp: now,
+          latitude:  latitude,
+          longitude: longitude,
+          hash:      hash,
+          statut:    permis.statut == StatutPermis.illegal
+            ? StatutPesee.fraudeSuspectee
+            : StatutPesee.valide,
+        );
+
+        setState(() {
+          _pesees.insert(0, nouvelle);
+          _selected   = nouvelle;
+          _simulating = false;
+        });
+        return;
+      }
+    } catch (_) {}
 
     final hash = Pesee.genererHash(
       permisId:  permis.id,
