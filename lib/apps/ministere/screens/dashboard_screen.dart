@@ -231,6 +231,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       backgroundColor: SirexeTheme.background,
       appBar: StatsTopbar(
         alerteCount: _alertes.length,
+        actifs: _permis.where((p) => p.statut == StatutPermis.valide).length,
+        suspendus: _permis.where((p) => p.statut == StatutPermis.suspendu).length,
+        expires: _permis.where((p) => p.statut == StatutPermis.revoque).length,
         onAlerteTap: () => setState(() => _tabIndex = 2),
       ),
       body: Column(children: [

@@ -5,18 +5,25 @@ import '../../../models/permis_minier.dart';
 
 class StatsTopbar extends StatelessWidget implements PreferredSizeWidget {
   final int alerteCount;
+  final int actifs;
+  final int suspendus;
+  final int expires;
   final VoidCallback onAlerteTap;
   const StatsTopbar({super.key,
-    required this.alerteCount, required this.onAlerteTap});
+    required this.alerteCount,
+    this.actifs = -1,
+    this.suspendus = -1,
+    this.expires = -1,
+    required this.onAlerteTap});
 
   @override
   Size get preferredSize => const Size.fromHeight(52);
 
   @override
   Widget build(BuildContext context) {
-    final actifs    = permisDemo.where((p) => p.statut == StatutPermis.valide).length;
-    final suspendus = permisDemo.where((p) => p.statut == StatutPermis.suspendu).length;
-    final expires   = permisDemo.where((p) => p.statut == StatutPermis.revoque).length;
+    final actifsCount    = actifs >= 0 ? actifs : permisDemo.where((p) => p.statut == StatutPermis.valide).length;
+    final suspendusCount = suspendus >= 0 ? suspendus : permisDemo.where((p) => p.statut == StatutPermis.suspendu).length;
+    final expiresCount   = expires >= 0 ? expires : permisDemo.where((p) => p.statut == StatutPermis.revoque).length;
 
     return Container(
       color: SirexeTheme.surface,
@@ -49,13 +56,13 @@ class StatsTopbar extends StatelessWidget implements PreferredSizeWidget {
               style: TextStyle(
                 color: SirexeTheme.textSecondary, fontSize: 12)),
             const Spacer(),
-            _StatPill(count: actifs,    label: 'valides',
+            _StatPill(count: actifsCount,    label: 'valides',
               color: SirexeTheme.accent),
             const SizedBox(width: 6),
-            _StatPill(count: suspendus, label: 'suspendus',
+            _StatPill(count: suspendusCount, label: 'suspendus',
               color: SirexeTheme.warning),
             const SizedBox(width: 6),
-            _StatPill(count: expires,   label: 'révoqués',
+            _StatPill(count: expiresCount,   label: 'révoqués',
               color: SirexeTheme.textSecondary),
             const SizedBox(width: 8),
             if (alerteCount > 0)
