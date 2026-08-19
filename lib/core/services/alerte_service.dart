@@ -1,11 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../../core/config/api_config.dart';
 import '../../models/alerte_model.dart';
 
 class AlerteService {
   AlerteService({
-    String baseUrl = 'http://localhost:3000',
+    String baseUrl = ApiConfig.baseUrl,
     Duration interval = const Duration(seconds: 15),
   })  : _baseUrl = baseUrl,
         _interval = interval;
