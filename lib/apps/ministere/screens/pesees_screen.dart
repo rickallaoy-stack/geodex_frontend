@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -19,11 +20,19 @@ class _PeseesScreenState extends State<PeseesScreen> {
   Pesee? _selected;
   bool _simulating = false;
   bool _loading = true;
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
     _load();
+    _timer = Timer.periodic(const Duration(seconds: 10), (_) => _load());
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -32,24 +41,27 @@ class _PeseesScreenState extends State<PeseesScreen> {
       final alertes = await PeseeService.fetchAlertes();
       final alertesIds = alertes.map((a) => a.id).toSet();
       final mapped = pesees.map((json) {
-        final pesee = Pesee.fromBackend(json);
-        if (alertesIds.contains(json['id']?.toString() ?? '')) {
-          return Pesee(
-            id: pesee.id,
-            camionId: pesee.camionId,
-            permisId: pesee.permisId,
-            nomSite: pesee.nomSite,
-            poidsNet: pesee.poidsNet,
-            poidsBrut: pesee.poidsBrut,
-            tare: pesee.tare,
-            timestamp: pesee.timestamp,
-            latitude: pesee.latitude,
-            longitude: pesee.longitude,
-            hash: pesee.hash,
-            statut: StatutPesee.fraudeSuspectee,
-          );
-        }
-        return pesee;
+        final backendStatut = (json['statut'] ?? 'EN_ATTENTE').toString();
+        final inAlerte = alertesIds.contains(json['id']?.toString() ?? '');
+        final statut = inAlerte
+          ? StatutPesee.hachInvalide
+          : backendStatut == 'VALIDE'
+            ? StatutPesee.valide
+            : StatutPesee.fraudeSuspectee;
+        return Pesee(
+          id: json['id']?.toString() ?? '',
+          camionId: json['capteur_id']?.toString() ?? 'CAM-UNKNOWN',
+          permisId: json['code_permis']?.toString() ?? 'INCONNU',
+          nomSite: json['code_permis']?.toString() ?? 'INCONNU',
+          poidsNet: (json['poids_mesure_kg'] as num?)?.toDouble() ?? 0.0,
+          poidsBrut: (json['poids_mesure_kg'] as num?)?.toDouble() ?? 0.0,
+          tare: 0.0,
+          timestamp: DateTime.tryParse(json['date_releve']?.toString() ?? '') ?? DateTime.now(),
+          latitude: (json['latitude'] as num?)?.toDouble() ?? 0.0,
+          longitude: (json['longitude'] as num?)?.toDouble() ?? 0.0,
+          hash: json['hash_actuel']?.toString() ?? '',
+          statut: statut,
+        );
       }).toList();
       if (mounted) setState(() => _pesees = mapped);
     } catch (_) {
@@ -161,9 +173,7 @@ class _PeseesScreenState extends State<PeseesScreen> {
   }
 
   String _formatWeight(double kg) {
-    if (kg < 1000) return '${kg.toStringAsFixed(1)} kg';
-    final tonnes = kg / 1000;
-    return '${tonnes.toStringAsFixed(2)} t';
+    return '${kg.toStringAsFixed(1)} kg';
   }
 
   @override
@@ -296,7 +306,7 @@ class _PeseesScreenState extends State<PeseesScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(children: [
-                              Text(p.camionId, style: const TextStyle(
+                              Text(p.permisId, style: const TextStyle(
                                 color: SirexeTheme.textPrimary,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600)),
@@ -427,9 +437,9 @@ class _PeseeDetail extends StatelessWidget {
           _Row('Camion',    pesee.camionId),
           _Row('Site',      pesee.nomSite),
           _Row('Permis',    pesee.permisId),
-          _Row('Poids net', '${pesee.poidsNet} tonnes'),
-          _Row('Poids brut','${pesee.poidsBrut} tonnes'),
-          _Row('Tare',      '${pesee.tare} tonnes'),
+          _Row('Poids net', '${pesee.poidsNet.toStringAsFixed(1)} kg'),
+          _Row('Poids brut','${pesee.poidsBrut.toStringAsFixed(1)} kg'),
+          _Row('Tare',      '${pesee.tare.toStringAsFixed(1)} kg'),
           _Row('Horodatage',
             '${pesee.timestamp.day}/${pesee.timestamp.month}/${pesee.timestamp.year} '
             '${pesee.timestamp.hour.toString().padLeft(2,'0')}:'
