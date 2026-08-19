@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:crypto/crypto.dart';
+import 'permis_minier.dart';
 
 enum StatutPesee { valide, fraudeSuspectee, hachInvalide }
 
@@ -32,6 +33,28 @@ class Pesee {
     required this.hash,
     required this.statut,
   });
+
+  factory Pesee.fromBackend(Map<String, dynamic> json) {
+    final permisId = json['code_permis']?.toString() ?? 'INCONNU';
+    final permis = permisDemo.firstWhere(
+      (p) => p.id == permisId,
+      orElse: () => permisDemo.first,
+    );
+    return Pesee(
+      id: json['id']?.toString() ?? '',
+      camionId: json['capteur_id']?.toString() ?? 'CAM-UNKNOWN',
+      permisId: permisId,
+      nomSite: permis.nom,
+      poidsNet: (json['poids_mesure_kg'] as num?)?.toDouble() ?? 0.0,
+      poidsBrut: (json['poids_mesure_kg'] as num?)?.toDouble() ?? 0.0,
+      tare: 0.0,
+      timestamp: DateTime.tryParse(json['date_releve']?.toString() ?? '') ?? DateTime.now(),
+      latitude: (json['latitude'] as num?)?.toDouble() ?? 0.0,
+      longitude: (json['longitude'] as num?)?.toDouble() ?? 0.0,
+      hash: json['hash_actuel']?.toString() ?? '',
+      statut: StatutPesee.valide,
+    );
+  }
 
   static String genererHash({
     required String permisId,

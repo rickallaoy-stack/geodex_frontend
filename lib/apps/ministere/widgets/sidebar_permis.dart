@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme.dart';
 import '../../../widgets/app_icon.dart';
 import '../../../models/permis_minier.dart';
+import '../../../core/services/permis_service.dart';
 
 class SidebarPermis extends StatefulWidget {
   final PermisMinier? selected;
@@ -27,13 +28,35 @@ class SidebarPermis extends StatefulWidget {
 
 class _SidebarPermisState extends State<SidebarPermis> {
   StatutPermis? _filter;
+  List<PermisMinier> _permis = [];
+  bool _loading = true;
 
   List<PermisMinier> get _filtered => _filter == null
-    ? permisDemo
-    : permisDemo.where((p) => p.statut == _filter).toList();
+    ? _permis
+    : _permis.where((p) => p.statut == _filter).toList();
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final permis = await PermisService.fetchPermis();
+    if (mounted) setState(() => _permis = permis);
+    if (mounted) setState(() => _loading = false);
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (_loading) {
+      return const SizedBox(
+        width: 240,
+        child: Center(child: CircularProgressIndicator(
+          strokeWidth: 2, color: SirexeTheme.accentBlue)),
+      );
+    }
+
     return Container(
       width: 240,
       color: SirexeTheme.surface,

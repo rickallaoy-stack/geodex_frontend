@@ -15,14 +15,47 @@ class PeseesScreen extends StatefulWidget {
 }
 
 class _PeseesScreenState extends State<PeseesScreen> {
-  late List<Pesee> _pesees;
+  List<Pesee> _pesees = [];
   Pesee? _selected;
   bool _simulating = false;
+  bool _loading = true;
 
   @override
   void initState() {
     super.initState();
-    _pesees = genererPeseesDemo();
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final pesees = await PeseeService.fetchPesees();
+      final alertes = await PeseeService.fetchAlertes();
+      final alertesIds = alertes.map((a) => a.id).toSet();
+      final mapped = pesees.map((json) {
+        final pesee = Pesee.fromBackend(json);
+        if (alertesIds.contains(json['id']?.toString() ?? '')) {
+          return Pesee(
+            id: pesee.id,
+            camionId: pesee.camionId,
+            permisId: pesee.permisId,
+            nomSite: pesee.nomSite,
+            poidsNet: pesee.poidsNet,
+            poidsBrut: pesee.poidsBrut,
+            tare: pesee.tare,
+            timestamp: pesee.timestamp,
+            latitude: pesee.latitude,
+            longitude: pesee.longitude,
+            hash: pesee.hash,
+            statut: StatutPesee.fraudeSuspectee,
+          );
+        }
+        return pesee;
+      }).toList();
+      if (mounted) setState(() => _pesees = mapped);
+    } catch (_) {
+      if (mounted) setState(() => _pesees = []);
+    }
+    if (mounted) setState(() => _loading = false);
   }
 
   void _simulerPesee() async {
@@ -127,8 +160,22 @@ class _PeseesScreenState extends State<PeseesScreen> {
     return '${dt.hour.toString().padLeft(2,'0')}:${dt.minute.toString().padLeft(2,'0')}';
   }
 
+  String _formatWeight(double kg) {
+    if (kg < 1000) return '${kg.toStringAsFixed(1)} kg';
+    final tonnes = kg / 1000;
+    return '${tonnes.toStringAsFixed(2)} t';
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (_loading) {
+      return const Scaffold(
+        backgroundColor: SirexeTheme.background,
+        body: Center(child: CircularProgressIndicator(
+          color: SirexeTheme.accentBlue, strokeWidth: 2)),
+      );
+    }
+
     final fraudes = _pesees.where(
       (p) => p.statut != StatutPesee.valide).length;
     final tonnage = _pesees
@@ -154,7 +201,7 @@ class _PeseesScreenState extends State<PeseesScreen> {
                     color: SirexeTheme.accentBlue),
                   const SizedBox(width: 8),
                   _StatCard(label: 'Tonnage validé',
-                    value: '${tonnage.toStringAsFixed(0)} t',
+                    value: _formatWeight(tonnage),
                     color: SirexeTheme.accent),
                   const SizedBox(width: 8),
                   _StatCard(label: 'Fraudes',
@@ -274,7 +321,7 @@ class _PeseesScreenState extends State<PeseesScreen> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            Text('${p.poidsNet} t', style: const TextStyle(
+                            Text(_formatWeight(p.poidsNet), style: const TextStyle(
                               color: SirexeTheme.textPrimary,
                               fontSize: 13,
                               fontWeight: FontWeight.w700)),

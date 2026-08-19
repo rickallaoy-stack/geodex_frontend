@@ -1,29 +1,52 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../core/theme.dart';
+import '../../../core/services/permis_service.dart';
 import '../../../models/permis_minier.dart';
 
-class StatsTopbar extends StatelessWidget implements PreferredSizeWidget {
+class StatsTopbar extends StatefulWidget implements PreferredSizeWidget {
   final int alerteCount;
-  final int actifs;
-  final int suspendus;
-  final int expires;
   final VoidCallback onAlerteTap;
   const StatsTopbar({super.key,
     required this.alerteCount,
-    this.actifs = -1,
-    this.suspendus = -1,
-    this.expires = -1,
     required this.onAlerteTap});
 
   @override
+  State<StatsTopbar> createState() => _StatsTopbarState();
+
+  @override
   Size get preferredSize => const Size.fromHeight(52);
+}
+
+class _StatsTopbarState extends State<StatsTopbar> {
+  List<PermisMinier> _permis = [];
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final permis = await PermisService.fetchPermis();
+    if (mounted) setState(() => _permis = permis);
+    if (mounted) setState(() => _loading = false);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final actifsCount    = actifs >= 0 ? actifs : permisDemo.where((p) => p.statut == StatutPermis.valide).length;
-    final suspendusCount = suspendus >= 0 ? suspendus : permisDemo.where((p) => p.statut == StatutPermis.suspendu).length;
-    final expiresCount   = expires >= 0 ? expires : permisDemo.where((p) => p.statut == StatutPermis.revoque).length;
+    if (_loading) {
+      return const SizedBox(
+        height: 52,
+        child: Center(child: CircularProgressIndicator(
+          strokeWidth: 2, color: SirexeTheme.accentBlue)),
+      );
+    }
+
+    final actifsCount    = _permis.where((p) => p.statut == StatutPermis.valide).length;
+    final suspendusCount = _permis.where((p) => p.statut == StatutPermis.suspendu).length;
+    final expiresCount   = _permis.where((p) => p.statut == StatutPermis.revoque).length;
 
     return Container(
       color: SirexeTheme.surface,
@@ -65,9 +88,9 @@ class StatsTopbar extends StatelessWidget implements PreferredSizeWidget {
             _StatPill(count: expiresCount,   label: 'révoqués',
               color: SirexeTheme.textSecondary),
             const SizedBox(width: 8),
-            if (alerteCount > 0)
+            if (widget.alerteCount > 0)
               GestureDetector(
-                onTap: onAlerteTap,
+                onTap: widget.onAlerteTap,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 10, vertical: 5),
@@ -80,7 +103,7 @@ class StatsTopbar extends StatelessWidget implements PreferredSizeWidget {
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
                     SizedBox(width: 13, height: 13, child: SvgPicture.asset('assets/images/icon_alert_dark.svg', width: 13, height: 13, color: SirexeTheme.danger)),
                     const SizedBox(width: 5),
-                    Text('$alerteCount alerte${alerteCount > 1 ? 's' : ''} fraude',
+                    Text('${widget.alerteCount} alerte${widget.alerteCount > 1 ? 's' : ''} fraude',
                       style: const TextStyle(color: SirexeTheme.danger,
                         fontSize: 12, fontWeight: FontWeight.w600)),
                   ]),
