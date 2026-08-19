@@ -5,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import '../../../core/theme.dart';
 import '../../../widgets/app_icon.dart';
 import '../../../widgets/map_cursor_control.dart';
@@ -63,6 +64,11 @@ class _TerrainHomeScreenState extends State<TerrainHomeScreen> {
     _getGPS();
     _refreshQueue();
     _loadPermis();
+    Connectivity().onConnectivityChanged.listen((results) {
+      if (results.any((r) => r != ConnectivityResult.none)) {
+        SyncQueue.syncAll().then((_) => _refreshQueue());
+      }
+    });
   }
 
   @override
@@ -560,7 +566,7 @@ class _TerrainHomeScreenState extends State<TerrainHomeScreen> {
           ),
         ),
       if (_positionActive != null)
-        Positioned(bottom: 16, left: 16,
+        Positioned(bottom: _positionActive != null ? 60 : 16, left: 16,
           child: Container(
             padding: const EdgeInsets.symmetric(
               horizontal: 10, vertical: 6),
@@ -582,6 +588,26 @@ class _TerrainHomeScreenState extends State<TerrainHomeScreen> {
                   color: _positionSimulee != null
                     ? SirexeTheme.warning : SirexeTheme.textPrimary,
                   fontSize: 11, fontFamily: 'monospace')),
+            ]),
+          ),
+        ),
+      if (_enAttente > 0)
+        Positioned(bottom: 16, left: 16,
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: SirexeTheme.warning.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(7),
+              border: Border.all(color: SirexeTheme.warning.withOpacity(0.5))),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              AppIcon.fromIconData(Icons.cloud_upload_outlined,
+                color: SirexeTheme.warning, size: 12),
+              const SizedBox(width: 6),
+              Text('$_enAttente en attente de sync',
+                style: TextStyle(
+                  color: SirexeTheme.warning,
+                  fontSize: 11, fontWeight: FontWeight.w600)),
             ]),
           ),
         ),

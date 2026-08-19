@@ -1,80 +1,79 @@
-import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/pesee.dart';
 import '../services/pesee_service.dart';
 
 class SyncQueue {
-  static Database? _db;
+  static const _key = 'pending_pesees';
 
-  static Future<Database> get db async {
-    _db ??= await openDatabase(
-      join(await getDatabasesPath(), 'geodex_queue.db'),
-      version: 1,
-      onCreate: (db, _) => db.execute('''
-        CREATE TABLE pesees_queue (
-          id TEXT PRIMARY KEY,
-          camion_id TEXT,
-          permis_id TEXT,
-          poids_net REAL,
-          poids_brut REAL,
-          tare REAL,
-          hash TEXT,
-          signature TEXT,
-          gps_lat REAL,
-          gps_lng REAL,
-          timestamp TEXT,
-          synced INTEGER DEFAULT 0
-        )
-      '''),
-    );
-    return _db!;
+  static Future<List<Map<String, dynamic>>> _loadQueue() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(_key);
+      if (raw == null || raw.isEmpty) return [];
+      final List<dynamic> decoded = json.decode(raw);
+      return decoded.cast<Map<String, dynamic>>();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  static Future<void> _saveQueue(List<Map<String, dynamic>> queue) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_key, json.encode(queue));
+    } catch (_) {}
   }
 
   static Future<void> enqueue(Pesee p, {String signature = ''}) async {
-    final d = await db;
-    await d.insert('pesees_queue', {
-      'id':         p.id,
-      'camion_id':  p.camionId,
-      'permis_id':  p.permisId,
-      'poids_net':  p.poidsNet,
+    final queue = await _loadQueue();
+    final entry = <String, dynamic>{
+      'id': p.id,
+      'camion_id': p.camionId,
+      'permis_id': p.permisId,
+      'poids_net': p.poidsNet,
       'poids_brut': p.poidsBrut,
-      'tare':       p.tare,
-      'hash':       p.hash,
-      'signature':  signature,
-      'gps_lat':    p.latitude,
-      'gps_lng':    p.longitude,
-      'timestamp':  p.timestamp.toIso8601String(),
-      'synced':     0,
-    }, conflictAlgorithm: ConflictAlgorithm.replace);
+      'tare': p.tare,
+      'hash': p.hash,
+      'signature': signature,
+      'gps_lat': p.latitude,
+      'gps_lng': p.longitude,
+      'timestamp': p.timestamp.toIso8601String(),
+      'synced': 0,
+    };
+    queue.add(entry);
+    await _saveQueue(queue);
   }
 
   static Future<int> countPending() async {
-    final d   = await db;
-    final res = await d.rawQuery(
-      'SELECT COUNT(*) as n FROM pesees_queue WHERE synced = 0');
-    return (res.first['n'] as int?) ?? 0;
+    final queue = await _loadQueue();
+    return queue.where((e) => e['synced'] == 0).length;
   }
 
   static Future<void> syncAll() async {
-    final d    = await db;
-    final rows = await d.query('pesees_queue',
-      where: 'synced = ?', whereArgs: [0]);
+    final queue = await _loadQueue();
+    final pending = queue.where((e) => e['synced'] == 0).toList();
+    if (pending.isEmpty) return;
 
-    for (final row in rows) {
+    for (final row in pending) {
       try {
         final res = await PeseeService.envoyerPesee(
-          capteurId:           row['permis_id'] as String,
-          poidsMesureKg:       row['poids_net'] as double,
-          latitude:            row['gps_lat'] as double,
-          longitude:           row['gps_lng'] as double,
-          signatureEquipement: row['signature'] as String? ?? '',
+          capteurId:           row['permis_id']?.toString() ?? '',
+          poidsMesureKg:       (row['poids_net'] as num?)?.toDouble() ?? 0.0,
+          latitude:            (row['gps_lat'] as num?)?.toDouble() ?? 0.0,
+          longitude:           (row['gps_lng'] as num?)?.toDouble() ?? 0.0,
+          signatureEquipement: row['signature']?.toString() ?? '',
         );
         if (res['success'] == true) {
-          await d.update('pesees_queue', {'synced': 1},
-            where: 'id = ?', whereArgs: [row['id']]);
+          row['synced'] = 1;
         }
-      } catch (_) {
-      }
+      } catch (_) {}
     }
+
+    await _saveQueue(queue);
+  }
+
+  static Future<void> clear() async {
+    await _saveQueue([]);
   }
 }
