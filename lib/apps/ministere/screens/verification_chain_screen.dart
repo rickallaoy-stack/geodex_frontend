@@ -1,9 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 import '../../../core/theme.dart';
 import '../../../widgets/app_icon.dart';
-import '../../../core/services/verification_service.dart';
+import '../../../core/config/api_config.dart';
 
 class VerificationChainScreen extends StatefulWidget {
   const VerificationChainScreen({super.key});
@@ -13,7 +14,6 @@ class VerificationChainScreen extends StatefulWidget {
 }
 
 class _VerificationChainScreenState extends State<VerificationChainScreen> {
-  final VerificationService _service = VerificationService();
   Map<String, dynamic>? _result;
   bool _loading = true;
   String? _error;
@@ -27,7 +27,10 @@ class _VerificationChainScreenState extends State<VerificationChainScreen> {
   Future<void> _load() async {
     setState(() { _loading = true; _error = null; });
     try {
-      final data = await _service.verifierChaine();
+      final res = await http.get(
+        Uri.parse('${ApiConfig.baseUrl}/api/pesees/verify-chain'),
+      ).timeout(const Duration(seconds: 10));
+      final data = jsonDecode(res.body) as Map<String, dynamic>;
       setState(() => _result = data);
     } catch (e) {
       setState(() => _error = e.toString());
@@ -39,9 +42,9 @@ class _VerificationChainScreenState extends State<VerificationChainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: SirexeTheme.background,
+      backgroundColor: SirexeTheme.surfaceLevel0,
       appBar: AppBar(
-        backgroundColor: SirexeTheme.surface,
+        backgroundColor: SirexeTheme.surfaceLevel1,
         title: const Text('Vérification chaîne', style: TextStyle(color: SirexeTheme.textPrimary, fontSize: 16, fontWeight: FontWeight.w600)),
         actions: [
           IconButton(onPressed: _load, icon: AppIcon.fromIconData(Icons.refresh, color: SirexeTheme.textSecondary, size: 18)),
@@ -58,60 +61,50 @@ class _VerificationChainScreenState extends State<VerificationChainScreen> {
   }
 
   Widget _buildBody() {
-    final valid = (_result!['valid'] as bool?) ?? false;
-    final total = (_result!['total'] as int?) ?? 0;
-    final invalid = (_result!['invalid'] as int?) ?? 0;
-    final chain = (_result!['chain'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+    final integre = (_result!['integre'] as bool?) ?? false;
+    final message = (_result!['message'] as String?) ?? '';
 
     return Column(children: [
-      // Header statut
       Container(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: valid ? SirexeTheme.accent.withOpacity(0.08) : SirexeTheme.danger.withOpacity(0.08),
-          border: Border(bottom: BorderSide(color: valid ? SirexeTheme.accent.withOpacity(0.3) : SirexeTheme.danger.withOpacity(0.3), width: 1)),
+          color: integre ? SirexeTheme.success.withValues(alpha: 0.08) : SirexeTheme.danger.withValues(alpha: 0.08),
+          border: Border(bottom: BorderSide(color: integre ? SirexeTheme.success.withValues(alpha: 0.3) : SirexeTheme.danger.withValues(alpha: 0.3), width: 1)),
         ),
         child: Row(children: [
           Container(
-            width: 44,
-            height: 44,
+            width: 56,
+            height: 56,
             decoration: BoxDecoration(
-              color: valid ? SirexeTheme.accent.withOpacity(0.12) : SirexeTheme.danger.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(10),
+              color: integre ? SirexeTheme.success.withValues(alpha: 0.12) : SirexeTheme.danger.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: valid
-              ? AppIcon.fromIconData(Icons.verified_rounded, color: SirexeTheme.accent, size: 24)
-              : SizedBox(width: 24, height: 24, child: SvgPicture.asset('assets/images/icon_alert_dark.svg', width: 24, height: 24, color: SirexeTheme.danger)),
+            child: integre
+              ? AppIcon.fromIconData(Icons.verified_rounded, color: SirexeTheme.success, size: 28)
+              : SizedBox(width: 28, height: 28, child: SvgPicture.asset('assets/images/icon_alert_dark.svg', width: 28, height: 28, color: SirexeTheme.danger)),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 20),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(valid ? 'Chaîne intègre' : 'Chaîne compromise', style: TextStyle(color: valid ? SirexeTheme.accent : SirexeTheme.danger, fontSize: 16, fontWeight: FontWeight.w700)),
-            const SizedBox(height: 2),
-            Text('$total pesée(s) vérifiée(s) · $invalid anomalie(s)', style: const TextStyle(color: SirexeTheme.textSecondary, fontSize: 12)),
+            Text(integre ? 'Chaîne intègre' : 'Chaîne compromise', style: TextStyle(color: integre ? SirexeTheme.success : SirexeTheme.danger, fontSize: 18, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 6),
+            Text(message, style: const TextStyle(color: SirexeTheme.textSecondary, fontSize: 13)),
           ])),
         ]),
       ),
       Container(height: 0.5, color: SirexeTheme.border),
-
-      // Légende
-      Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        color: SirexeTheme.surface,
-        child: Row(children: [
-          _LegendDot(color: SirexeTheme.accent, label: 'Valide'),
-          const SizedBox(width: 16),
-          _LegendDot(color: SirexeTheme.danger, label: 'Hash invalide'),
-          const SizedBox(width: 16),
-          _LegendDot(color: SirexeTheme.warning, label: 'Rupture chaîne'),
-        ]),
-      ),
-      Container(height: 0.5, color: SirexeTheme.border),
-
-      // Liste chaîne
-      Expanded(child: ListView.builder(
-        padding: const EdgeInsets.all(12),
-        itemCount: chain.length,
-        itemBuilder: (context, i) => _ChainCard(item: chain[i], index: i),
+      Expanded(child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Icon(integre ? Icons.shield_outlined : Icons.warning_amber_rounded, size: 80, color: integre ? SirexeTheme.success.withValues(alpha: 0.3) : SirexeTheme.danger.withValues(alpha: 0.3)),
+            const SizedBox(height: 24),
+            Text('SHA-256', style: TextStyle(color: SirexeTheme.textSecondary, fontSize: 12, fontWeight: FontWeight.w700, letterSpacing: 2)),
+            const SizedBox(height: 8),
+            Text(integre ? 'Aucune altération détectée' : 'Modification non autorisée détectée', style: TextStyle(color: SirexeTheme.textPrimary, fontSize: 15, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 8),
+            Text('Vérification côté serveur · ${DateTime.now().toIso8601String().substring(0, 19).replaceAll('T', ' ')}', style: TextStyle(color: SirexeTheme.textSecondary, fontSize: 11, fontFamily: 'monospace')),
+          ]),
+        ),
       )),
     ]);
   }
@@ -132,110 +125,4 @@ class _ErrorView extends StatelessWidget {
     const SizedBox(height: 20),
     TextButton.icon(onPressed: onRetry, icon: AppIcon.fromIconData(Icons.refresh, color: SirexeTheme.accentBlue), label: const Text('Réessayer', style: TextStyle(color: SirexeTheme.accentBlue))),
   ]));
-}
-
-class _LegendDot extends StatelessWidget {
-  final Color color;
-  final String label;
-  const _LegendDot({required this.color, required this.label});
-
-  @override
-  Widget build(BuildContext context) => Row(mainAxisSize: MainAxisSize.min, children: [
-    Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
-    const SizedBox(width: 6),
-    Text(label, style: const TextStyle(color: SirexeTheme.textSecondary, fontSize: 11)),
-  ]);
-}
-
-class _ChainCard extends StatelessWidget {
-  final Map<String, dynamic> item;
-  final int index;
-  const _ChainCard({required this.item, required this.index});
-
-  @override
-  Widget build(BuildContext context) {
-    final hashActuel = item['hash_actuel'] as String? ?? '';
-    final hashPrecedent = item['hash_precedent'] as String? ?? '';
-    final isValid = item['valid'] as bool? ?? false;
-    final erreur = item['erreur'] as String? ?? '';
-    final id = item['id'] as String? ?? '#$index';
-
-    Color statusColor;
-    String statusLabel;
-    if (isValid) {
-      statusColor = SirexeTheme.accent;
-      statusLabel = 'Valide';
-    } else if (erreur.contains('hash') || erreur.contains('Hash')) {
-      statusColor = SirexeTheme.danger;
-      statusLabel = 'Hash invalide';
-    } else {
-      statusColor = SirexeTheme.warning;
-      statusLabel = 'Rupture';
-    }
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: SirexeTheme.surface,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: isValid ? SirexeTheme.accent.withOpacity(0.2) : SirexeTheme.danger.withOpacity(0.3), width: 1),
-      ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          Container(width: 28, height: 28, decoration: BoxDecoration(
-            color: statusColor.withOpacity(0.12),
-            borderRadius: BorderRadius.circular(6),
-          ), child: isValid
-            ? AppIcon.fromIconData(Icons.check_circle_outline, color: statusColor, size: 16)
-            : SizedBox(width: 16, height: 16, child: SvgPicture.asset('assets/images/icon_alert_dark.svg', width: 16, height: 16, color: statusColor))),
-          const SizedBox(width: 10),
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(id, style: const TextStyle(color: SirexeTheme.textPrimary, fontSize: 13, fontWeight: FontWeight.w600)),
-            Text(statusLabel, style: TextStyle(color: statusColor, fontSize: 11, fontWeight: FontWeight.w500)),
-          ])),
-          if (!isValid && erreur.isNotEmpty)
-            Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(
-              color: SirexeTheme.danger.withOpacity(0.08),
-              borderRadius: BorderRadius.circular(4),
-              border: Border.all(color: SirexeTheme.danger.withOpacity(0.25)),
-            ), child: Text(erreur, style: const TextStyle(color: SirexeTheme.danger, fontSize: 10))),
-        ]),
-        const SizedBox(height: 10),
-        _HashRow(label: 'Hash actuel', value: hashActuel, isValid: isValid),
-        const SizedBox(height: 6),
-        _HashRow(label: 'Hash précédent', value: hashPrecedent, isValid: isValid),
-      ]),
-    );
-  }
-}
-
-class _HashRow extends StatelessWidget {
-  final String label;
-  final String value;
-  final bool isValid;
-  const _HashRow({required this.label, required this.value, required this.isValid});
-
-  @override
-  Widget build(BuildContext context) {
-    final display = value.isEmpty ? '—' : '${value.substring(0, 16)}...';
-    return Row(children: [
-      SizedBox(width: 100, child: Text(label, style: TextStyle(color: SirexeTheme.textSecondary, fontSize: 11))),
-      Expanded(child: GestureDetector(
-        onTap: value.isEmpty ? null : () => Clipboard.setData(ClipboardData(text: value)),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-          decoration: BoxDecoration(
-            color: SirexeTheme.background,
-            borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: SirexeTheme.border),
-          ),
-          child: Row(children: [
-            Expanded(child: Text(display, style: const TextStyle(color: SirexeTheme.textPrimary, fontSize: 11, fontFamily: 'monospace', letterSpacing: 0.3))),
-            if (value.isNotEmpty) AppIcon.fromIconData(Icons.copy, color: SirexeTheme.textSecondary, size: 13),
-          ]),
-        ),
-      )),
-    ]);
-  }
 }

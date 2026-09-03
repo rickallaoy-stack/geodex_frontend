@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme.dart';
 import '../../../core/services/pesee_service.dart';
 import '../../../widgets/app_icon.dart';
@@ -33,8 +35,10 @@ class _AlertesScreenState extends State<AlertesScreen> {
   }
 
   Future<void> _load() async {
+    if (!mounted) return;
     setState(() => _loading = true);
     final alertes = await PeseeService.fetchAlertes();
+    if (!mounted) return;
     setState(() {
       _alertes = alertes;
       _loading = false;
@@ -42,8 +46,10 @@ class _AlertesScreenState extends State<AlertesScreen> {
   }
 
   Future<void> _verifierChaine() async {
+    if (!mounted) return;
     setState(() => _verifying = true);
     final res = await PeseeService.verifierIntegrite();
+    if (!mounted) return;
     setState(() {
       _integre    = res['integre'] as bool;
       _integreMsg = res['message'] as String;
@@ -55,14 +61,25 @@ class _AlertesScreenState extends State<AlertesScreen> {
     '${dt.day.toString().padLeft(2,'0')}/${dt.month.toString().padLeft(2,'0')}/${dt.year} '
     '${dt.hour.toString().padLeft(2,'0')}:${dt.minute.toString().padLeft(2,'0')}';
 
+  Color _statusColorForType(String type) {
+    switch (type) {
+      case 'HORS_ZONE':
+        return SirexeTheme.danger;
+      case 'SIGNATURE_COMPROMISE':
+        return SirexeTheme.danger;
+      default:
+        return SirexeTheme.warning;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: SirexeTheme.background,
+      backgroundColor: SirexeTheme.surfaceLevel0,
       body: Row(children: [
         Container(
           width: 400,
-          color: SirexeTheme.surface,
+          color: SirexeTheme.surfaceLevel1,
           child: Column(children: [
             Container(
               padding: const EdgeInsets.all(16),
@@ -105,32 +122,33 @@ class _AlertesScreenState extends State<AlertesScreen> {
                       itemCount: _alertes.length,
                       itemBuilder: (_, i) {
                         final a = _alertes[i];
+                        final statusColor = _statusColorForType(a.typeAnomalie);
                         return Container(
                           margin: const EdgeInsets.only(bottom: 6),
-                          padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: SirexeTheme.surfaceElevated,
+                            border: Border(
+                              left: BorderSide(color: statusColor, width: 4),
+                            ),
+                            color: SirexeTheme.surfaceLevel2,
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: SirexeTheme.danger.withOpacity(0.3),
-                              width: 0.5)),
+                          ),
                           child: Row(children: [
                             Container(
                               width: 34, height: 34,
                               decoration: BoxDecoration(
-                                color: SirexeTheme.danger.withOpacity(0.1),
+                                color: statusColor.withOpacity(0.12),
                                 borderRadius: BorderRadius.circular(7)),
                               child: AppIcon.fromIconData(Icons.location_off,
-                                color: SirexeTheme.danger, size: 16)),
+                                color: statusColor, size: 16)),
                             const SizedBox(width: 10),
                             Expanded(child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(a.typeLabel, style: const TextStyle(
+                                Text(a.typeLabel, style: TextStyle(
                                   color: SirexeTheme.textPrimary,
                                   fontSize: 12, fontWeight: FontWeight.w600)),
                                 const SizedBox(height: 2),
-                                Text(a.description, style: const TextStyle(
+                                Text(a.description, style: TextStyle(
                                   color: SirexeTheme.textSecondary,
                                   fontSize: 11),
                                   maxLines: 2,
@@ -143,7 +161,7 @@ class _AlertesScreenState extends State<AlertesScreen> {
                                   const SizedBox(width: 3),
                                   Text(
                                     '${a.poidsMesureKg.toStringAsFixed(1)} kg',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       color: SirexeTheme.textSecondary,
                                       fontSize: 10)),
                                   const SizedBox(width: 10),
@@ -152,14 +170,14 @@ class _AlertesScreenState extends State<AlertesScreen> {
                                     color: SirexeTheme.textSecondary),
                                   const SizedBox(width: 3),
                                   Text(_formatDate(a.dateAlerte),
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       color: SirexeTheme.textSecondary,
                                       fontSize: 10)),
                                 ]),
                               ],
                             )),
                           ]),
-                        );
+                        ).animate().fadeIn(duration: const Duration(milliseconds: 400), delay: Duration(milliseconds: i * 50)).slideY(begin: -0.1, duration: const Duration(milliseconds: 400));
                       },
                     ),
             ),
@@ -246,7 +264,7 @@ class _AlertesScreenState extends State<AlertesScreen> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: SirexeTheme.surface,
+                    color: SirexeTheme.surfaceLevel1,
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: SirexeTheme.border)),
                   child: Column(

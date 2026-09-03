@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme.dart';
 import '../../../widgets/app_icon.dart';
 import '../../../models/pesee.dart';
@@ -165,6 +166,16 @@ class _PeseesScreenState extends State<PeseesScreen> {
     });
   }
 
+  Color _statusColor(StatutPesee statut) {
+    switch (statut) {
+      case StatutPesee.valide:
+        return SirexeTheme.success;
+      case StatutPesee.fraudeSuspectee:
+      case StatutPesee.hachInvalide:
+        return SirexeTheme.danger;
+    }
+  }
+
   String _formatTime(DateTime dt) {
     final diff = DateTime.now().difference(dt);
     if (diff.inMinutes < 1)  return 'À l\'instant';
@@ -180,7 +191,7 @@ class _PeseesScreenState extends State<PeseesScreen> {
   Widget build(BuildContext context) {
     if (_loading) {
       return const Scaffold(
-        backgroundColor: SirexeTheme.background,
+        backgroundColor: SirexeTheme.surfaceLevel0,
         body: Center(child: CircularProgressIndicator(
           color: SirexeTheme.accentBlue, strokeWidth: 2)),
       );
@@ -193,11 +204,11 @@ class _PeseesScreenState extends State<PeseesScreen> {
       .fold(0.0, (s, p) => s + p.poidsNet);
 
     return Scaffold(
-      backgroundColor: SirexeTheme.background,
+      backgroundColor: SirexeTheme.surfaceLevel0,
       body: Row(children: [
         Container(
           width: 360,
-          color: SirexeTheme.surface,
+          color: SirexeTheme.surfaceLevel1,
           child: Column(children: [
             Container(
               padding: const EdgeInsets.all(16),
@@ -228,7 +239,7 @@ class _PeseesScreenState extends State<PeseesScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     decoration: BoxDecoration(
                       color: _simulating
-                        ? SirexeTheme.surfaceElevated
+                        ? SirexeTheme.surfaceLevel2
                         : SirexeTheme.accentBlue.withOpacity(0.15),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
@@ -271,26 +282,22 @@ class _PeseesScreenState extends State<PeseesScreen> {
                 itemBuilder: (_, i) {
                   final p   = _pesees[i];
                   final sel = _selected?.id == p.id;
+                  final statusColor = _statusColor(p.statut);
                   return GestureDetector(
                     onTap: () => setState(() => _selected = p),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 150),
                       margin: const EdgeInsets.only(bottom: 5),
-                      padding: const EdgeInsets.all(11),
                       decoration: BoxDecoration(
+                        border: Border(
+                          left: BorderSide(color: statusColor, width: 4),
+                        ),
                         color: sel
                           ? SirexeTheme.accentBlue.withOpacity(0.08)
                           : p.statut != StatutPesee.valide
                             ? SirexeTheme.danger.withOpacity(0.04)
-                            : SirexeTheme.surfaceElevated,
+                            : SirexeTheme.surfaceLevel1,
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: sel
-                            ? SirexeTheme.accentBlue
-                            : p.statut != StatutPesee.valide
-                              ? SirexeTheme.danger.withOpacity(0.35)
-                              : SirexeTheme.border,
-                          width: sel ? 1.5 : 0.5),
                       ),
                       child: Row(children: [
                         Container(
@@ -373,7 +380,7 @@ class _StatCard extends StatelessWidget {
     child: Container(
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
       decoration: BoxDecoration(
-        color: SirexeTheme.surfaceElevated,
+        color: SirexeTheme.surfaceLevel2,
         borderRadius: BorderRadius.circular(7),
         border: Border.all(color: SirexeTheme.border)),
       child: Column(children: [
@@ -489,15 +496,15 @@ class _PeseeDetail extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: SirexeTheme.background,
+                    color: SirexeTheme.surfaceLevel0,
                     borderRadius: BorderRadius.circular(6),
                     border: Border.all(color: SirexeTheme.border)),
                   child: Row(children: [
                     Expanded(child: Text(pesee.hash,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: SirexeTheme.textPrimary,
                         fontSize: 11,
-                        fontFamily: 'monospace',
+                        fontFamily: GoogleFonts.jetBrainsMono().fontFamily,
                         letterSpacing: 0.5))),
                     const SizedBox(width: 8),
                     AppIcon.fromIconData(Icons.copy,
@@ -509,9 +516,9 @@ class _PeseeDetail extends StatelessWidget {
               Text(
                 'SHA-256(${pesee.permisId}|${pesee.camionId}|'
                 '${pesee.poidsNet}|timestamp|GPS)',
-                style: const TextStyle(
+                style: TextStyle(
                   color: SirexeTheme.textSecondary,
-                  fontSize: 10, fontFamily: 'monospace')),
+                  fontSize: 10, fontFamily: GoogleFonts.jetBrainsMono().fontFamily)),
             ]),
           ),
           if (!hashOk) ...[
@@ -556,7 +563,7 @@ class _Section extends StatelessWidget {
       Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: SirexeTheme.surface,
+          color: SirexeTheme.surfaceLevel1,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(color: SirexeTheme.border)),
         child: Column(children: children)),

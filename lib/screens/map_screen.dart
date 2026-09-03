@@ -158,7 +158,7 @@ class _MapScreenState extends State<MapScreen> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: SirexeTheme.surface.withOpacity(0.92),
+              color: SirexeTheme.surfaceLevel1.withOpacity(0.92),
               borderRadius: BorderRadius.circular(6),
               border: Border.all(color: p.couleur, width: 1.5),
             ),
@@ -186,7 +186,7 @@ class _MapScreenState extends State<MapScreen> {
         : permisDemo.where((p) => p.statut == _filtreStatut).toList();
 
     return Scaffold(
-      backgroundColor: SirexeTheme.background,
+      backgroundColor: SirexeTheme.surfaceLevel0,
       appBar: GeoTopBar(
         permis: permisDemo,
         filtreActif: _filtreStatut,

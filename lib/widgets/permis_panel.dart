@@ -18,7 +18,7 @@ class PermisPanel extends StatelessWidget {
       margin: const EdgeInsets.all(12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: SirexeTheme.surface,
+        color: SirexeTheme.surfaceLevel1,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: permis.couleur, width: 1.5),
       ),
@@ -121,7 +121,7 @@ class _InfoChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: SirexeTheme.surfaceElevated,
+        color: SirexeTheme.surfaceLevel2,
         borderRadius: BorderRadius.circular(6),
       ),
       child: Row(mainAxisSize: MainAxisSize.min, children: [

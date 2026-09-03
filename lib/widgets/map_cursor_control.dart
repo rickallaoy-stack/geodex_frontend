@@ -103,7 +103,7 @@ class _MapCursorControlState extends State<MapCursorControl> {
             width: size,
             height: size,
             decoration: BoxDecoration(
-              color: SirexeTheme.surface.withOpacity(0.92),
+              color: SirexeTheme.surfaceLevel1.withOpacity(0.92),
               shape: BoxShape.circle,
               border: Border.all(color: color.withOpacity(0.45), width: 1.4),
               boxShadow: [
@@ -257,7 +257,7 @@ class _CursorButton extends StatelessWidget {
         width: 36,
         height: 36,
         decoration: BoxDecoration(
-          color: SirexeTheme.surface.withOpacity(0.92),
+          color: SirexeTheme.surfaceLevel1.withOpacity(0.92),
           shape: BoxShape.circle,
           border: Border.all(color: color.withOpacity(0.45), width: 1.2),
           boxShadow: [

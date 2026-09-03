@@ -76,6 +76,10 @@ class AlerteBackend {
   final double latitude;
   final double longitude;
   final double poidsMesureKg;
+  final String? rfidUid;
+  final String? operateurNom;
+  final String? permisNumero;
+  final String? siteNom;
 
   const AlerteBackend({
     required this.id,
@@ -85,6 +89,10 @@ class AlerteBackend {
     required this.latitude,
     required this.longitude,
     required this.poidsMesureKg,
+    this.rfidUid,
+    this.operateurNom,
+    this.permisNumero,
+    this.siteNom,
   });
 
   factory AlerteBackend.fromJson(Map<String, dynamic> j) => AlerteBackend(
@@ -95,12 +103,18 @@ class AlerteBackend {
     latitude:      (j['latitude'] ?? 0).toDouble(),
     longitude:     (j['longitude'] ?? 0).toDouble(),
     poidsMesureKg: (j['poids_mesure_kg'] ?? 0).toDouble(),
+    rfidUid:       j['rfid_uid'] as String?,
+    operateurNom:  j['operateur_nom'] as String?,
+    permisNumero:  j['permis_numero'] as String?,
+    siteNom:       j['site_nom'] as String?,
   );
 
   String get typeLabel {
     switch (typeAnomalie) {
       case 'HORS_ZONE':             return 'Hors zone autorisée';
       case 'SIGNATURE_COMPROMISE':  return 'Signature compromise';
+      case 'PERMIS_EXPIRE':         return 'Permis expiré';
+      case 'QUOTA_DEPASSE':         return 'Quota dépassé';
       default:                      return typeAnomalie;
     }
   }

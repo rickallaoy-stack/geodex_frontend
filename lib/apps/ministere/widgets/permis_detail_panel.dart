@@ -15,7 +15,7 @@ class PermisDetailPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: SirexeTheme.surface,
+        color: SirexeTheme.surfaceLevel1,
         border: Border(
           top: BorderSide(color: permis.couleur, width: 2),
           left: BorderSide(color: SirexeTheme.border, width: 0.5),
@@ -121,7 +121,7 @@ class _Chip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: SirexeTheme.surfaceElevated,
+        color: SirexeTheme.surfaceLevel2,
         borderRadius: BorderRadius.circular(5),
       ),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
@@ -149,7 +149,7 @@ class _ActionBtn extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 7),
           decoration: BoxDecoration(
-            color: SirexeTheme.surfaceElevated,
+            color: SirexeTheme.surfaceLevel2,
             borderRadius: BorderRadius.circular(6),
             border: Border.all(
               color: danger ? SirexeTheme.danger.withOpacity(0.4) : SirexeTheme.border),

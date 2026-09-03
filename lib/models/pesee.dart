@@ -37,7 +37,7 @@ class Pesee {
   factory Pesee.fromBackend(Map<String, dynamic> json) {
     final permisId = json['code_permis']?.toString() ?? 'INCONNU';
     final permis = permisDemo.firstWhere(
-      (p) => p.id == permisId,
+      (p) => p.codePermis == permisId,
       orElse: () => permisDemo.first,
     );
     return Pesee(

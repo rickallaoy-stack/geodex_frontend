@@ -59,7 +59,7 @@ class _SidebarPermisState extends State<SidebarPermis> {
 
     return Container(
       width: 240,
-      color: SirexeTheme.surface,
+      color: SirexeTheme.surfaceLevel1,
       child: Column(children: [
         // Couches
         _Section(title: 'COUCHES', child: Column(children: [
@@ -152,7 +152,7 @@ class _SidebarPermisState extends State<SidebarPermis> {
                       ? SirexeTheme.accentBlue.withOpacity(0.1)
                       : ill
                         ? SirexeTheme.danger.withOpacity(0.05)
-                        : SirexeTheme.surfaceElevated,
+                        : SirexeTheme.surfaceLevel2,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: sel ? SirexeTheme.accentBlue
@@ -280,7 +280,7 @@ class _Chip extends StatelessWidget {
     child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: active ? color.withOpacity(0.15) : SirexeTheme.surfaceElevated,
+        color: active ? color.withOpacity(0.15) : SirexeTheme.surfaceLevel2,
         borderRadius: BorderRadius.circular(5),
         border: Border.all(
           color: active ? color.withOpacity(0.5) : SirexeTheme.border)),

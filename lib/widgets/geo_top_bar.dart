@@ -42,7 +42,7 @@ class GeoTopBar extends StatelessWidget implements PreferredSizeWidget {
     return Container(
       height: 52,
       decoration: BoxDecoration(
-        color: SirexeTheme.surface,
+        color: SirexeTheme.surfaceLevel1,
         border: Border(bottom: BorderSide(color: SirexeTheme.border, width: 1)),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -119,7 +119,7 @@ class GeoTopBar extends StatelessWidget implements PreferredSizeWidget {
             child: Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: SirexeTheme.surfaceElevated,
+                color: SirexeTheme.surfaceLevel2,
                 border: Border.all(color: SirexeTheme.border),
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -224,7 +224,7 @@ class _StatChip extends StatelessWidget {
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
-          color: actif ? dotColor.withOpacity(0.15) : SirexeTheme.surfaceElevated,
+          color: actif ? dotColor.withOpacity(0.15) : SirexeTheme.surfaceLevel2,
           border: Border.all(
             color: actif ? dotColor.withOpacity(0.5) : SirexeTheme.border,
           ),

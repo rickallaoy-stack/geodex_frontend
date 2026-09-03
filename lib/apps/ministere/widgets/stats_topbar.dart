@@ -49,7 +49,7 @@ class _StatsTopbarState extends State<StatsTopbar> {
     final expiresCount   = _permis.where((p) => p.statut == StatutPermis.revoque).length;
 
     return Container(
-      color: SirexeTheme.surface,
+      color: SirexeTheme.surfaceLevel1,
       child: Column(children: [
         Container(height: 0.5, color: SirexeTheme.border),
         SizedBox(height: 51.5,
@@ -129,7 +129,7 @@ class _StatPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: SirexeTheme.surfaceElevated,
+        color: SirexeTheme.surfaceLevel2,
         borderRadius: BorderRadius.circular(6),
         border: Border.all(color: SirexeTheme.border),
       ),

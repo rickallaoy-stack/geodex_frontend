@@ -1,6 +1,6 @@
 {
-    "name": "sirexe",
-    "short_name": "sirexe",
+    "name": "geodex",
+    "short_name": "geodex",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

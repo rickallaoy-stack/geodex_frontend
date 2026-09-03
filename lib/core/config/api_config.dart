@@ -4,13 +4,17 @@
 /// des URLs de backend hardcodées dans les widgets.
 class ApiConfig {
   static const String baseUrl =
-      String.fromEnvironment('GEODEX_API_BASE_URL', defaultValue: 'https://0df3dgx7-3000.uks1.devtunnels.ms');
+      String.fromEnvironment('GEODEX_API_BASE_URL', defaultValue: 'http://localhost:3000');
 
   static const int timeoutSeconds =
       int.fromEnvironment('GEODEX_API_TIMEOUT', defaultValue: 15);
 
   static const String environment =
       String.fromEnvironment('GEODEX_ENV', defaultValue: 'development');
+
+  /// Si true, l'app vérifie la connexion au backend au démarrage.
+  static const bool checkServerOnStartup =
+      bool.fromEnvironment('GEODEX_CHECK_SERVER', defaultValue: true);
 
   static bool get isProduction => environment == 'production';
 }

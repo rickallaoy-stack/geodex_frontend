@@ -6,12 +6,14 @@ import 'package:google_fonts/google_fonts.dart';
 class SirexeTheme {
   // ─── Surfaces (3 niveaux) ────────────────────────────────────────────────
   static const Color surfaceLevel0 = Color(0xFF0A0A14); // fond global
-  static const Color surfaceLevel1 = Color(0xFF16162A); // cartes, sidebar
-  static const Color surfaceLevel2 = Color(0xFF1E1E35); // popups, survols
+  static const Color surfaceLevel1 = Color(0xFF12121F); // cartes, sidebar
+  static const Color surfaceLevel2 = Color(0xFF1A1A2E); // popups, survols
 
   // Alias rétro-compatibilité
-  static const Color background = surfaceLevel0;
-  static const Color surface = surfaceLevel1;
+  static const Color background    = surfaceLevel0;
+  static const Color surface1      = surfaceLevel1;
+  static const Color surface2      = surfaceLevel2;
+  static const Color surface       = surfaceLevel1;
   static const Color surfaceElevated = surfaceLevel2;
 
   // ─── Bordures ────────────────────────────────────────────────────────────

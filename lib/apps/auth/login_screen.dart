@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import '../../core/theme.dart';
+import '../../core/config/api_config.dart';
 import '../../widgets/app_icon.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -8,7 +10,7 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
-enum Role { ministere, terrain }
+enum Role { ministere, borne }
 
 class _LoginScreenState extends State<LoginScreen>
     with SingleTickerProviderStateMixin {
@@ -29,6 +31,48 @@ class _LoginScreenState extends State<LoginScreen>
       duration: const Duration(milliseconds: 600));
     _fade = CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeOut);
     _fadeCtrl.forward();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkServer());
+  }
+
+  Future<void> _checkServer() async {
+    if (!ApiConfig.checkServerOnStartup) return;
+    bool reachable = false;
+    try {
+      final response = await http.get(
+        Uri.parse('${ApiConfig.baseUrl}/api/pesees/concessions'),
+      ).timeout(const Duration(seconds: 5));
+      reachable = response.statusCode == 200;
+    } catch (_) {
+      reachable = false;
+    }
+    if (!mounted) return;
+    if (!reachable) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          backgroundColor: SirexeTheme.surfaceLevel1,
+          title: Row(children: [
+            AppIcon.fromIconData(Icons.error_outline,
+              color: SirexeTheme.danger, size: 24),
+            const SizedBox(width: 8),
+            const Text('Backend inaccessible'),
+          ]),
+          content: Text(
+            'Le serveur GEODEX sur ${ApiConfig.baseUrl} ne répond pas.\n\n'
+            'Vérifiez que le backend est démarré : cd backend && npm start\n'
+            'Lancer avec un autre serveur : '
+            '--dart-define=GEODEX_API_BASE_URL=http://localhost:3000',
+            style: TextStyle(color: SirexeTheme.textSecondary, fontSize: 13),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK')),
+          ],
+        ),
+      );
+    }
   }
 
   @override
@@ -44,7 +88,7 @@ class _LoginScreenState extends State<LoginScreen>
       _role = role;
       _emailCtrl.text = role == Role.ministere
         ? 'demo.ministere@mines.ci'
-        : 'demo.operateur@geodex.ci';
+        : 'demo.borne@geodex.ci';
       _passCtrl.text = 'demo1234';
       _error = null;
     });
@@ -63,14 +107,14 @@ class _LoginScreenState extends State<LoginScreen>
     if (_role == Role.ministere) {
       Navigator.of(context).pushReplacementNamed('/ministere');
     } else {
-      Navigator.of(context).pushReplacementNamed('/terrain');
+      Navigator.of(context).pushReplacementNamed('/borne');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: SirexeTheme.background,
+      backgroundColor: SirexeTheme.surfaceLevel0,
       body: FadeTransition(
         opacity: _fade,
         child: Stack(children: [
@@ -94,7 +138,7 @@ class _LoginScreenState extends State<LoginScreen>
               child: Container(
                 padding: const EdgeInsets.all(36),
                 decoration: BoxDecoration(
-                  color: SirexeTheme.surface,
+                  color: SirexeTheme.surfaceLevel1,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: SirexeTheme.border),
                 ),
@@ -113,39 +157,39 @@ class _LoginScreenState extends State<LoginScreen>
                         },
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'EXPLORE. TRACER. COMPRENDRE.',
-                      style: TextStyle(
-                        color: SirexeTheme.textSecondary,
-                        fontSize: 11, letterSpacing: 2),
-                      textAlign: TextAlign.center),
-                    const SizedBox(height: 28),
-                    Row(children: [
-                      _RoleCard(
-                        emoji: '🏛️',
-                        label: 'Ministère',
-                        desc: 'Dashboard · Audit',
-                        active: _role == Role.ministere,
-                        color: SirexeTheme.accentBlue,
-                        onTap: () => setState(() => _role = Role.ministere)),
-                      const SizedBox(width: 8),
-                      _RoleCard(
-                        emoji: '⛏️',
-                        label: 'Opérateur terrain',
-                        desc: 'Pesée · GPS · Offline',
-                        active: _role == Role.terrain,
-                        color: SirexeTheme.accent,
-                        onTap: () => setState(() => _role = Role.terrain)),
-                    ]),
-                    const SizedBox(height: 20),
-                    _Field(
-                      label: 'Identifiant',
-                      controller: _emailCtrl,
-                      hint: _role == Role.ministere
-                        ? 'agent.ministere@mines.ci'
-                        : 'operateur.site@geodex.ci',
-                      icon: Icons.person_outline),
+                     const SizedBox(height: 8),
+                     const Text(
+                       'EXPLORE. TRACER. COMPRENDRE.',
+                       style: TextStyle(
+                         color: SirexeTheme.textSecondary,
+                         fontSize: 11, letterSpacing: 2),
+                       textAlign: TextAlign.center),
+                     const SizedBox(height: 28),
+                      Row(children: [
+                        _RoleCard(
+                          emoji: '🏛️',
+                          label: 'Ministère',
+                          desc: 'Dashboard · Audit',
+                          active: _role == Role.ministere,
+                          color: SirexeTheme.accentBlue,
+                          onTap: () => setState(() => _role = Role.ministere)),
+                        const SizedBox(width: 8),
+                        _RoleCard(
+                          emoji: '🖨️',
+                          label: 'Borne',
+                          desc: 'QR · Passeport',
+                          active: _role == Role.borne,
+                          color: SirexeTheme.warning,
+                          onTap: () => setState(() => _role = Role.borne)),
+                      ]),
+                     const SizedBox(height: 20),
+                      _Field(
+                        label: 'Identifiant',
+                        controller: _emailCtrl,
+                        hint: _role == Role.ministere
+                          ? 'agent.ministere@mines.ci'
+                          : 'borne.site@geodex.ci',
+                        icon: Icons.person_outline),
                     const SizedBox(height: 12),
                     _Field(
                       label: 'Mot de passe',
@@ -179,11 +223,11 @@ class _LoginScreenState extends State<LoginScreen>
                       width: double.infinity,
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
-                          color: _role == Role.ministere
-                            ? SirexeTheme.accentBlue
-                            : SirexeTheme.accent),
+                         decoration: BoxDecoration(
+                           borderRadius: BorderRadius.circular(8),
+                           color: _role == Role.ministere
+                             ? SirexeTheme.accentBlue
+                             : SirexeTheme.warning),
                         child: TextButton(
                           onPressed: _loading ? null : _login,
                           style: TextButton.styleFrom(
@@ -197,9 +241,9 @@ class _LoginScreenState extends State<LoginScreen>
                             : Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Text(_role == Role.ministere
-                                    ? '🏛️  Accéder au Dashboard'
-                                    : '⛏️  Accéder à l\'App Terrain',
+                                   Text(_role == Role.ministere
+                                     ? 'Accéder au Dashboard'
+                                     : 'Accéder à la Borne',
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 14,
@@ -228,8 +272,8 @@ class _LoginScreenState extends State<LoginScreen>
                         onTap: () => _fillDemo(Role.ministere)),
                       const SizedBox(width: 8),
                       _DemoBtn(
-                        label: '👤 Demo Opérateur',
-                        onTap: () => _fillDemo(Role.terrain)),
+                        label: '🖨️ Demo Borne',
+                        onTap: () => _fillDemo(Role.borne)),
                     ]),
                     const SizedBox(height: 16),
                     const Text(
@@ -280,7 +324,7 @@ class _RoleCard extends StatelessWidget {
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: active ? color.withOpacity(0.08) : SirexeTheme.surfaceElevated,
+          color: active ? color.withOpacity(0.08) : SirexeTheme.surfaceLevel2,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: active ? color : SirexeTheme.border,
@@ -331,7 +375,7 @@ class _Field extends StatelessWidget {
             color: SirexeTheme.textSecondary, size: 16),
           suffixIcon: suffix,
           filled: true,
-          fillColor: SirexeTheme.surfaceElevated,
+          fillColor: SirexeTheme.surfaceLevel2,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
             borderSide: const BorderSide(
@@ -363,7 +407,7 @@ class _DemoBtn extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
-          color: SirexeTheme.surfaceElevated,
+          color: SirexeTheme.surfaceLevel2,
           borderRadius: BorderRadius.circular(7),
           border: Border.all(color: SirexeTheme.border)),
         child: Text(label, style: const TextStyle(

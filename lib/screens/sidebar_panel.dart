@@ -56,7 +56,7 @@ class SidebarPanel extends StatelessWidget {
 
     return Container(
       width: 256,
-      color: SirexeTheme.surface,
+      color: SirexeTheme.surfaceLevel1,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -284,7 +284,7 @@ class _FiltreChip extends StatelessWidget {
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
-          color: actif ? color.withOpacity(0.18) : SirexeTheme.surfaceElevated,
+          color: actif ? color.withOpacity(0.18) : SirexeTheme.surfaceLevel2,
           border: Border.all(
             color: actif ? color : SirexeTheme.border,
             width: 1,
@@ -329,7 +329,7 @@ class _PermisCard extends StatelessWidget {
         margin: const EdgeInsets.fromLTRB(8, 3, 8, 3),
         padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
         decoration: BoxDecoration(
-          color: selected ? SirexeTheme.surfaceElevated : SirexeTheme.surface,
+          color: selected ? SirexeTheme.surfaceLevel2 : SirexeTheme.surfaceLevel1,
           border: Border.all(
             color: selected
                 ? badgeColor.withOpacity(0.6)

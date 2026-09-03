@@ -20,6 +20,12 @@ dependencies:
   path: ^1.9.0
   connectivity_plus: ^6.0.5
   shared_preferences: ^2.2.3
+  qr_flutter: ^4.1.0
+  share_plus: ^7.2.1
+  google_fonts: ^6.2.1
+  flutter_animate: ^4.5.0
+  shimmer: ^3.0.0
+  pdf: ^3.10.8
 
 dev_dependencies:
   flutter_test:

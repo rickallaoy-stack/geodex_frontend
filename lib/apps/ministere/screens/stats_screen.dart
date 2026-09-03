@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme.dart';
 import '../../../widgets/app_icon.dart';
 import '../../../core/services/pesee_service.dart';
@@ -155,7 +156,7 @@ class _StatsScreenState extends State<StatsScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: SirexeTheme.surface,
+                color: SirexeTheme.surfaceLevel1,
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: SirexeTheme.border)),
               child: Column(
@@ -187,7 +188,7 @@ class _StatsScreenState extends State<StatsScreen> {
                         borderRadius: BorderRadius.circular(4),
                         child: LinearProgressIndicator(
                           value: pct,
-                          backgroundColor: SirexeTheme.surfaceElevated,
+                          backgroundColor: SirexeTheme.surfaceLevel2,
                           color: color,
                           minHeight: 6)),
                     ]),
@@ -203,7 +204,7 @@ class _StatsScreenState extends State<StatsScreen> {
             const SizedBox(height: 12),
             Container(
               decoration: BoxDecoration(
-                color: SirexeTheme.surface,
+                color: SirexeTheme.surfaceLevel1,
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: SirexeTheme.border)),
               child: Column(
@@ -224,7 +225,7 @@ class _StatsScreenState extends State<StatsScreen> {
                       Container(
                         width: 28, height: 28,
                         decoration: BoxDecoration(
-                          color: SirexeTheme.surfaceElevated,
+                          color: SirexeTheme.surfaceLevel2,
                           borderRadius: BorderRadius.circular(6)),
                         child: Center(child: Text('${i + 1}',
                           style: const TextStyle(
@@ -242,7 +243,7 @@ class _StatsScreenState extends State<StatsScreen> {
                             borderRadius: BorderRadius.circular(3),
                             child: LinearProgressIndicator(
                               value: pct,
-                              backgroundColor: SirexeTheme.surfaceElevated,
+                              backgroundColor: SirexeTheme.surfaceLevel2,
                               color: SirexeTheme.accentBlue,
                               minHeight: 4)),
                         ],
@@ -292,7 +293,7 @@ class _StatsScreenState extends State<StatsScreen> {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: SirexeTheme.surface,
+              color: SirexeTheme.surfaceLevel1,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: SirexeTheme.border)),
             child: Row(children: [
@@ -346,15 +347,15 @@ class _KpiCard extends StatelessWidget {
     width: 180,
     padding: const EdgeInsets.all(16),
     decoration: BoxDecoration(
-      color: SirexeTheme.surface,
+      color: SirexeTheme.surfaceLevel1,
       borderRadius: BorderRadius.circular(10),
-      border: Border.all(color: SirexeTheme.border)),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      border: Border.all(color: SirexeTheme.borderSubtle)),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(children: [
         Container(
           width: 30, height: 30,
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withOpacity(0.12),
             borderRadius: BorderRadius.circular(7)),
           child: AppIcon.fromIconData(icon, color: color, size: 15)),
         const Spacer(),
@@ -366,5 +367,5 @@ class _KpiCard extends StatelessWidget {
       Text(label, style: const TextStyle(
         color: SirexeTheme.textSecondary, fontSize: 11)),
     ]),
-  );
+  ).animate().fadeIn(duration: 600.ms).slideY(begin: 0.2, duration: 600.ms);
 }

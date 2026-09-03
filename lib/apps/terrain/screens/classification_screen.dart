@@ -26,9 +26,9 @@ class _ClassificationScreenState extends State<ClassificationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: SirexeTheme.background,
+      backgroundColor: SirexeTheme.surfaceLevel0,
       appBar: AppBar(
-        backgroundColor: SirexeTheme.surface,
+        backgroundColor: SirexeTheme.surfaceLevel1,
         title: const Text('Classification roche', style: TextStyle(color: SirexeTheme.textPrimary, fontSize: 16, fontWeight: FontWeight.w600)),
       ),
       body: _photos.isEmpty
@@ -79,7 +79,7 @@ class _PhotoCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: SirexeTheme.surface,
+        color: SirexeTheme.surfaceLevel1,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: SirexeTheme.border),
       ),
@@ -88,7 +88,7 @@ class _PhotoCard extends StatelessWidget {
           Container(
             width: 48, height: 48,
             decoration: BoxDecoration(
-              color: SirexeTheme.surfaceElevated,
+              color: SirexeTheme.surfaceLevel2,
               borderRadius: BorderRadius.circular(8),
             ),
             child: AppIcon.fromIconData(Icons.image_outlined, color: SirexeTheme.textSecondary, size: 24),

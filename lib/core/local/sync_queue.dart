@@ -25,12 +25,17 @@ class SyncQueue {
     } catch (_) {}
   }
 
-  static Future<void> enqueue(Pesee p, {String signature = ''}) async {
+  static Future<void> enqueue(
+    Pesee p, {
+    required String capteurId,
+    String signature = '',
+  }) async {
     final queue = await _loadQueue();
     final entry = <String, dynamic>{
       'id': p.id,
       'camion_id': p.camionId,
       'permis_id': p.permisId,
+      'capteur_id': capteurId,
       'poids_net': p.poidsNet,
       'poids_brut': p.poidsBrut,
       'tare': p.tare,
@@ -58,8 +63,8 @@ class SyncQueue {
     for (final row in pending) {
       try {
         final res = await PeseeService.envoyerPesee(
-          capteurId:           row['permis_id']?.toString() ?? '',
-          poidsMesureKg:       (row['poids_net'] as num?)?.toDouble() ?? 0.0,
+          capteurId:           row['capteur_id']?.toString() ?? '',
+          poidsMesureKg:       ((row['poids_net'] as num?)?.toDouble() ?? 0.0) * 1000,
           latitude:            (row['gps_lat'] as num?)?.toDouble() ?? 0.0,
           longitude:           (row['gps_lng'] as num?)?.toDouble() ?? 0.0,
           signatureEquipement: row['signature']?.toString() ?? '',
@@ -75,5 +80,26 @@ class SyncQueue {
 
   static Future<void> clear() async {
     await _saveQueue([]);
+  }
+
+  static Future<List<Pesee>> fetchPending() async {
+    final queue = await _loadQueue();
+    return queue
+        .where((e) => e['synced'] == 0)
+        .map((row) => Pesee(
+              id: row['id']?.toString() ?? '',
+              camionId: row['camion_id']?.toString() ?? '',
+              permisId: row['permis_id']?.toString() ?? '',
+              nomSite: 'Hors ligne',
+              poidsNet: (row['poids_net'] as num?)?.toDouble() ?? 0.0,
+              poidsBrut: (row['poids_brut'] as num?)?.toDouble() ?? 0.0,
+              tare: (row['tare'] as num?)?.toDouble() ?? 0.0,
+              timestamp: DateTime.tryParse(row['timestamp']?.toString() ?? '') ?? DateTime.now(),
+              latitude: (row['gps_lat'] as num?)?.toDouble() ?? 0.0,
+              longitude: (row['gps_lng'] as num?)?.toDouble() ?? 0.0,
+              hash: row['hash']?.toString() ?? '',
+              statut: StatutPesee.valide,
+            ))
+        .toList();
   }
 }
