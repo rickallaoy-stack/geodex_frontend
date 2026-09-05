@@ -31,6 +31,7 @@ class _BorneKioskScreenState extends State<BorneKioskScreen> {
   bool _modeDemoVisible = false;
   bool _sessionDemo = false;
   String? _erreur;
+  String? _erreurCause;
 
   @override
   void initState() {
@@ -59,6 +60,7 @@ class _BorneKioskScreenState extends State<BorneKioskScreen> {
     final resultat = await _service.scannerBadge(rfidUid: uid);
     if (!mounted) return;
     if (!resultat.succes) {
+      String? cause;
       final message = resultat.code == CodeErreurScan.quotaDepasse && resultat.operateur != null
           ? 'Quota atteint pour ${resultat.operateur!.nom}\n${resultat.operateur!.quotaJourRestantKg.toStringAsFixed(0)} g disponibles'
           : resultat.code == CodeErreurScan.permisExpire && resultat.operateur != null
@@ -66,7 +68,16 @@ class _BorneKioskScreenState extends State<BorneKioskScreen> {
               : resultat.code == CodeErreurScan.badgeInconnu
                   ? 'Badge non reconnu'
                   : resultat.erreur ?? 'Identification impossible';
-      _afficherErreur(message);
+
+      if (resultat.code == CodeErreurScan.quotaDepasse) {
+        cause = 'QUOTA_DEPASSE';
+      } else if (resultat.code == CodeErreurScan.permisExpire) {
+        cause = 'PERMIS_EXPIRE';
+      } else if (resultat.code == CodeErreurScan.badgeInconnu) {
+        cause = 'BADGE_INCONNU';
+      }
+
+      _afficherErreur(message, cause: cause);
       return;
     }
     HapticFeedback.selectionClick();
@@ -115,7 +126,7 @@ class _BorneKioskScreenState extends State<BorneKioskScreen> {
     );
     if (!mounted) return;
     if (passeport == null) {
-      _afficherErreur('Generation du passeport impossible');
+      _afficherErreur('Generation du passeport impossible', cause: 'ERREUR_SIGNATURE');
       return;
     }
     setState(() {
@@ -125,7 +136,7 @@ class _BorneKioskScreenState extends State<BorneKioskScreen> {
     final imprime = _sessionDemo || (_materiel.imprimante && await _service.imprimerTicket(passeport));
     if (!mounted) return;
     if (!imprime) {
-      _afficherErreur('Imprimante thermique indisponible');
+      _afficherErreur('Imprimante thermique indisponible', cause: 'IMPRIMANTE_INDISPONIBLE');
       return;
     }
     SystemSound.play(SystemSoundType.alert);
@@ -137,16 +148,15 @@ class _BorneKioskScreenState extends State<BorneKioskScreen> {
     Future.delayed(const Duration(seconds: 5), _reinitialiser);
   }
 
-  void _afficherErreur(String message) {
+  void _afficherErreur(String message, {String? cause}) {
     _poidsSubscription?.cancel();
     SystemSound.play(SystemSoundType.alert);
     if (!mounted) return;
     setState(() {
       _etat = EtatBorne.erreur;
       _erreur = message;
+      _erreurCause = cause;
     });
-    // Un passeport signé reste affiché : l'utilisateur doit pouvoir scanner
-    // le QR avant de démarrer une nouvelle transaction.
     if (_passeport == null) {
       Future.delayed(const Duration(seconds: 4), _reinitialiser);
     }
@@ -166,6 +176,7 @@ class _BorneKioskScreenState extends State<BorneKioskScreen> {
       _ticketImprime = false;
       _sessionDemo = false;
       _erreur = null;
+      _erreurCause = null;
     });
   }
 
@@ -400,6 +411,7 @@ class _BorneKioskScreenState extends State<BorneKioskScreen> {
         'TRANSACTION REFUSEE',
         _erreur ?? 'Erreur inconnue',
         Colors.redAccent,
+        cause: _erreurCause,
       );
     }
 
@@ -537,7 +549,17 @@ class _BorneKioskScreenState extends State<BorneKioskScreen> {
     ]);
   }
 
-  Widget _emptyState(String key, IconData icon, String title, String text, Color color) => Column(key: ValueKey(key), mainAxisSize: MainAxisSize.min, children: [Container(width: 102, height: 102, decoration: BoxDecoration(shape: BoxShape.circle, color: color.withOpacity(0.11), border: Border.all(color: color.withOpacity(0.35))), child: Icon(icon, color: color, size: 49)), const SizedBox(height: 24), Text(title, textAlign: TextAlign.center, style: TextStyle(color: color, fontSize: 19, fontWeight: FontWeight.w800, letterSpacing: 1)), const SizedBox(height: 10), Text(text, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white60, fontSize: 14, height: 1.4))]);
+  Widget _emptyState(String key, IconData icon, String title, String text, Color color, {String? cause}) => Column(key: ValueKey(key), mainAxisSize: MainAxisSize.min, children: [
+    Container(width: 102, height: 102, decoration: BoxDecoration(shape: BoxShape.circle, color: color.withValues(alpha: 0.11), border: Border.all(color: color.withValues(alpha: 0.35))), child: Icon(icon, color: color, size: 49)),
+    const SizedBox(height: 24),
+    Text(title, textAlign: TextAlign.center, style: TextStyle(color: color, fontSize: 19, fontWeight: FontWeight.w800, letterSpacing: 1)),
+    if (cause != null) ...[
+      const SizedBox(height: 6),
+      Text(cause, textAlign: TextAlign.center, style: const TextStyle(color: Colors.redAccent, fontSize: 13, fontWeight: FontWeight.w600)),
+    ],
+    const SizedBox(height: 10),
+    Text(text, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white60, fontSize: 14, height: 1.4))
+  ]);
 
   Widget _demoPanel() => Column(children: [
         TextButton.icon(onPressed: () => setState(() => _modeDemoVisible = !_modeDemoVisible), icon: Icon(_modeDemoVisible ? Icons.keyboard_arrow_up : Icons.tune_rounded, size: 16), label: Text(_modeDemoVisible ? 'MASQUER LE MODE DEMO' : 'OUVRIR LE MODE DEMO', style: const TextStyle(fontSize: 10, letterSpacing: 1))),
