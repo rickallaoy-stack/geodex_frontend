@@ -113,10 +113,13 @@ class _BorneActiviteWidgetState extends State<BorneActiviteWidget> {
   );
 
   Widget _buildLigneOperateur(dynamic op) {
-    final consomme = (op['quotaJourConsommeKg'] as num).toDouble();
-    final total = (op['quotaJourKg'] as num).toDouble();
-    final ratio = (consomme / total).clamp(0.0, 1.0);
-    final depasse = op['quotaDepasse'] as bool;
+    final consomme = (op['consommeJourKg'] as num?)?.toDouble() ?? 0;
+    final total    = (op['quotaJourKg'] as num?)?.toDouble() ?? 1;
+    final restant  = (op['quotaJourRestantKg'] as num?)?.toDouble() ?? 0;
+    final nbPesees = op['nbPeseesJour'] as int? ?? 0;
+    final depasse  = op['quotaDepasse'] as bool? ?? false;
+    final ratio    = (consomme / total).clamp(0.0, 1.0);
+
     final couleur = depasse
         ? Colors.redAccent
         : ratio > 0.7
@@ -131,12 +134,21 @@ class _BorneActiviteWidgetState extends State<BorneActiviteWidget> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(op['nom'],
-                  style: const TextStyle(color: Colors.white, fontSize: 13)),
-              Text(
-                depasse ? 'Depasse' : '${consomme.toStringAsFixed(0)} / ${total.toStringAsFixed(0)} g',
-                style: TextStyle(color: couleur, fontSize: 11),
-              ),
+              Text(op['nom'] ?? '—',
+                  style: const TextStyle(
+                      color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500)),
+              Row(children: [
+                Text('$nbPesees pesée${nbPesees > 1 ? 's' : ''}',
+                    style: TextStyle(
+                        color: SirexeTheme.textSecondary, fontSize: 10)),
+                const SizedBox(width: 10),
+                Text(
+                  depasse
+                      ? '⛔ Quota dépassé'
+                      : '${(consomme * 1000).toStringAsFixed(0)} / ${(total * 1000).toStringAsFixed(0)} g',
+                  style: TextStyle(color: couleur, fontSize: 11),
+                ),
+              ]),
             ],
           ),
           const SizedBox(height: 6),
@@ -149,8 +161,28 @@ class _BorneActiviteWidgetState extends State<BorneActiviteWidget> {
               minHeight: 4,
             ),
           ),
+          if (op['dernierePesee'] != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              'Dernière pesée : ${_formatDate(op['dernierePesee'])}',
+              style: TextStyle(
+                  color: SirexeTheme.textSecondary.withValues(alpha: 0.5),
+                  fontSize: 9),
+            ),
+          ],
         ],
       ),
     );
+  }
+
+  String _formatDate(String? iso) {
+    if (iso == null) return '—';
+    try {
+      final dt = DateTime.parse(iso).toLocal();
+      return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')} '
+          '${dt.hour.toString().padLeft(2, '0')}h${dt.minute.toString().padLeft(2, '0')}';
+    } catch (_) {
+      return iso;
+    }
   }
 }
