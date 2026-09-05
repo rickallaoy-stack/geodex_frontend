@@ -13,7 +13,7 @@ class ResultatQR {
   final String? id;
   final String? operateurNom;
   final String? permisId;
-  final double? poidsNetKg;
+  final double? poidsNetG;
   final DateTime? expiration;
   final String? qrPayload;
   final String? motifRefus;
@@ -25,7 +25,7 @@ class ResultatQR {
     this.id,
     this.operateurNom,
     this.permisId,
-    this.poidsNetKg,
+    this.poidsNetG,
     this.expiration,
     this.qrPayload,
     this.motifRefus,
@@ -69,7 +69,7 @@ class _ComptoirScanScreenState extends State<ComptoirScanScreen> {
           id: passeport['id'] as String?,
           operateurNom: passeport['operateurNom'] as String?,
           permisId: passeport['permisId'] as String?,
-          poidsNetKg: (passeport['poidsNetKg'] as num?)?.toDouble(),
+          poidsNetG: (passeport['poidsNetG'] as num?)?.toDouble(),
           expiration: expiration,
           qrPayload: raw,
         );
@@ -131,7 +131,7 @@ class _ComptoirScanScreenState extends State<ComptoirScanScreen> {
               pw.SizedBox(height: 10),
               _pdfRow('Exploitant', passeport.operateurNom ?? 'Non renseigne'),
               _pdfRow('Permis', passeport.permisId ?? 'Non renseigne'),
-              _pdfRow('Poids net', '${((passeport.poidsNetKg ?? 0) * 1000).toStringAsFixed(2)} g'),
+              _pdfRow('Poids net', '${(passeport.poidsNetG ?? 0).toStringAsFixed(2)} g'),
               _pdfRow('Comptoir', 'GEODEX'),
               pw.Divider(),
               pw.SizedBox(height: 10),
@@ -336,7 +336,7 @@ class _ComptoirScanScreenState extends State<ComptoirScanScreen> {
           _ligne('Operateur', r.operateurNom ?? '—'),
           _ligne('Permis', r.permisId ?? '—'),
           _ligne('Poids net',
-              '${((r.poidsNetKg ?? 0) * 1000).toStringAsFixed(2)} g'),
+              '${(r.poidsNetG ?? 0).toStringAsFixed(2)} g'),
           _ligne('Expire le', _formatDate(r.expiration!)),
         ] else ...[
           Container(

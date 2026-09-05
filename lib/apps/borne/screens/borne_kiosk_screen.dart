@@ -109,9 +109,9 @@ class _BorneKioskScreenState extends State<BorneKioskScreen> {
     setState(() => _etat = EtatBorne.impression);
     final passeport = await _service.genererPasseport(
       operateur: _operateur!,
-      poidsNetKg: _poidsVerrouilleG! / 1000,
-      latitude: 8.6753,
-      longitude: -5.0248,
+      poidsNetG: _poidsVerrouilleG!,
+      latitude: 9.167,
+      longitude: -6.483,
     );
     if (!mounted) return;
     if (passeport == null) {
@@ -503,7 +503,7 @@ class _BorneKioskScreenState extends State<BorneKioskScreen> {
         const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: Divider(color: Color(0xFFCED4CF))),
         QrImageView(data: p.qrPayload, version: QrVersions.auto, size: 142, backgroundColor: const Color(0xFFFFFCF4)),
         const SizedBox(height: 10),
-        _ticketLine('Exploitant', p.operateurNom), _ticketLine('Permis', p.permisNumero), _ticketLine('Poids net', '${(p.poidsNetKg * 1000).toStringAsFixed(2)} g'), _ticketLine('Borne', 'TONGON-01'), _ticketLine('Lieu', '8.6753, -5.0248'), _ticketLine('Date', _dateCourte(DateTime.now())),
+        _ticketLine('Exploitant', p.operateurNom), _ticketLine('Permis', p.permisNumero), _ticketLine('Poids net', '${p.poidsNetG.toStringAsFixed(2)} g'), _ticketLine('Borne', 'TONGON-01'), _ticketLine('Lieu', '9.167, -6.483'), _ticketLine('Date', _dateCourte(DateTime.now())),
         const Padding(padding: EdgeInsets.symmetric(vertical: 10), child: Divider(color: Color(0xFFCED4CF))),
         Text(
           'ID ${(p.id.length >= 8 ? p.id.substring(0, 8) : p.id).toUpperCase()}  •  VERIFIABLE',

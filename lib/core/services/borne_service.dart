@@ -96,7 +96,7 @@ class PasseportMineral {
   final String id;
   final String operateurNom;
   final String permisNumero;
-  final double poidsNetKg;
+  final double poidsNetG;
   final int expiration;
   final String qrPayload;
   final String statut;
@@ -107,7 +107,7 @@ class PasseportMineral {
     required this.id,
     required this.operateurNom,
     required this.permisNumero,
-    required this.poidsNetKg,
+    required this.poidsNetG,
     required this.expiration,
     required this.qrPayload,
     required this.statut,
@@ -120,7 +120,7 @@ class PasseportMineral {
         id:            j['id'],
         operateurNom:  j['operateurNom'],
         permisNumero:  j['permisNumero'] ?? j['permisId'] ?? '',
-        poidsNetKg:    (j['poidsNetKg'] as num).toDouble(),
+        poidsNetG:    (j['poidsNetG'] as num).toDouble(),
         expiration:    j['expiration'],
         qrPayload:     qr,
         statut:        j['statut'] ?? 'valide',
@@ -229,7 +229,7 @@ class BorneService {
 
   Future<PasseportMineral?> genererPasseport({
     required OperateurRFID operateur,
-    required double poidsNetKg,
+    required double poidsNetG,
     required double latitude,
     required double longitude,
   }) async {
@@ -243,7 +243,7 @@ class BorneService {
               'operateurNom':  operateur.nom,
               'permisId':      operateur.permisId,
               'permisNumero':  operateur.permisNumero ?? operateur.permisId,
-              'poidsNetKg':    poidsNetKg,
+              'poidsNetG':    poidsNetG,
               'latitude':      latitude,
               'longitude':     longitude,
               'borneId':       'BORNE-TONGON-01',
